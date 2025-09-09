@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>External Connect Server API 테스트</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .api-section {
+            margin-bottom: 40px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .api-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .api-header h3 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .api-header p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .api-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input[type="text"], textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .result.loading {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-online {
+            background: #28a745;
+        }
+
+        .status-offline {
+            background: #dc3545;
+        }
+
+        .endpoint-list {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .endpoint-list h4 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .endpoint-list ul {
+            list-style: none;
+        }
+
+        .endpoint-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .endpoint-list li:last-child {
+            border-bottom: none;
+        }
+
+        .endpoint-list code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 External Connect Server API</h1>
+            <p>MCP 서버와 통신하는 API 테스트 인터페이스</p>
+            <div style="margin-top: 15px;">
+                <span class="status-indicator" id="statusIndicator"></span>
+                <span id="statusText">서버 상태 확인 중...</span>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="endpoint-list">
+                <h4>📋 사용 가능한 API 엔드포인트</h4>
+                <ul>
+                    <li><code>GET /</code> - API 서버 정보</li>
+                    <li><code>GET /health</code> - 서버 상태 확인</li>
+                    <li><code>GET /tools</code> - 사용 가능한 도구 목록</li>
+                    <li><code>POST /call</code> - 일반적인 도구 호출</li>
+                    <li><code>POST /joke</code> - 농담 생성</li>
+                    <li><code>POST /ask</code> - OpenAI 질문</li>
+                    <li><code>POST /explain</code> - 개념 설명</li>
+                    <li><code>POST /youtube/search</code> - YouTube 검색</li>
+                    <li><code>POST /youtube/trending</code> - YouTube 인기 동영상</li>
+                </ul>
+            </div>
+
+            <div class="grid">
+                <!-- YouTube 검색 -->
+                <div class="api-section">
+                    <div class="api-header">
+                        <h3>🎥 YouTube 검색</h3>
+                        <p>YouTube에서 비디오를 검색합니다</p>
+                    </div>
+                    <div class="api-body">
+                        <div class="form-group">
+                            <label for="youtubeSearchQuery">검색어:</label>
+                            <input type="text" id="youtubeSearchQuery" placeholder="예: 주식 투자, 인공지능, 요리" value="주식 투자">
+                        </div>
+                        <button class="btn" onclick="searchYouTube()">🔍 검색</button>
+                        <div id="youtubeSearchResult" class="result" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- YouTube 인기 동영상 -->
+                <div class="api-section">
+                    <div class="api-header">
+                        <h3>🔥 YouTube 인기 동영상</h3>
+                        <p>지역별 인기 동영상을 조회합니다</p>
+                    </div>
+                    <div class="api-body">
+                        <div class="form-group">
+                            <label for="trendingRegion">지역 코드:</label>
+                            <select id="trendingRegion">
+                                <option value="KR">한국 (KR)</option>
+                                <option value="US">미국 (US)</option>
+                                <option value="JP">일본 (JP)</option>
+                                <option value="GB">영국 (GB)</option>
+                            </select>
+                        </div>
+                        <button class="btn" onclick="getTrendingVideos()">📈 인기 동영상 조회</button>
+                        <div id="trendingResult" class="result" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- OpenAI 질문 -->
+                <div class="api-section">
+                    <div class="api-header">
+                        <h3>🤖 OpenAI 질문</h3>
+                        <p>OpenAI GPT-4o-mini에게 질문합니다</p>
+                    </div>
+                    <div class="api-body">
+                        <div class="form-group">
+                            <label for="openaiQuestion">질문:</label>
+                            <textarea id="openaiQuestion" placeholder="질문을 입력하세요...">인공지능이란 무엇인가요?</textarea>
+                        </div>
+                        <button class="btn" onclick="askOpenAI()">💬 질문하기</button>
+                        <div id="openaiResult" class="result" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- 개념 설명 -->
+                <div class="api-section">
+                    <div class="api-header">
+                        <h3>📚 개념 설명</h3>
+                        <p>중학생 수준으로 개념을 설명합니다</p>
+                    </div>
+                    <div class="api-body">
+                        <div class="form-group">
+                            <label for="conceptToExplain">설명할 개념:</label>
+                            <input type="text" id="conceptToExplain" placeholder="예: 머신러닝, 블록체인, 양자컴퓨팅" value="머신러닝">
+                        </div>
+                        <button class="btn" onclick="explainConcept()">📖 설명하기</button>
+                        <div id="explainResult" class="result" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- 농담 생성 -->
+                <div class="api-section">
+                    <div class="api-header">
+                        <h3>😄 농담 생성</h3>
+                        <p>주제에 대한 간단한 농담을 생성합니다</p>
+                    </div>
+                    <div class="api-body">
+                        <div class="form-group">
+                            <label for="jokeTopic">농담 주제:</label>
+                            <input type="text" id="jokeTopic" placeholder="예: 프로그래머, 요리사, 학생" value="프로그래머">
+                        </div>
+                        <button class="btn" onclick="generateJoke()">😂 농담 생성</button>
+                        <div id="jokeResult" class="result" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- 일반적인 도구 호출 -->
+                <div class="api-section">
+                    <div class="api-header">
+                        <h3>🔧 일반적인 도구 호출</h3>
+                        <p>직접 도구 이름과 인수를 지정하여 호출합니다</p>
+                    </div>
+                    <div class="api-body">
+                        <div class="form-group">
+                            <label for="toolName">도구 이름:</label>
+                            <select id="toolName">
+                                <option value="search_youtube">search_youtube</option>
+                                <option value="get_trending_videos">get_trending_videos</option>
+                                <option value="ask_openai">ask_openai</option>
+                                <option value="explain_concept">explain_concept</option>
+                                <option value="simple_joke">simple_joke</option>
+                                <option value="get_video_info">get_video_info</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="toolArguments">인수 (JSON 형식):</label>
+                            <textarea id="toolArguments" placeholder='{"query": "검색어", "max_results": 5}'>{"query": "주식 투자", "max_results": 3}</textarea>
+                        </div>
+                        <button class="btn" onclick="callTool()">⚡ 도구 호출</button>
+                        <div id="toolResult" class="result" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000';
+
+        // 서버 상태 확인
+        async function checkServerStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                if (response.ok) {
+                    document.getElementById('statusIndicator').className = 'status-indicator status-online';
+                    document.getElementById('statusText').textContent = '서버 온라인';
+                } else {
+                    throw new Error('Server not responding');
+                }
+            } catch (error) {
+                document.getElementById('statusIndicator').className = 'status-indicator status-offline';
+                document.getElementById('statusText').textContent = '서버 오프라인';
+            }
+        }
+
+        // 결과 표시 함수
+        function showResult(elementId, content, isError = false) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = `result ${isError ? 'error' : 'success'}`;
+            element.textContent = content;
+        }
+
+        // 로딩 표시 함수
+        function showLoading(elementId) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = 'result loading';
+            element.textContent = '요청 처리 중...';
+        }
+
+        // YouTube 검색
+        async function searchYouTube() {
+            const query = document.getElementById('youtubeSearchQuery').value;
+            if (!query.trim()) {
+                showResult('youtubeSearchResult', '검색어를 입력해주세요.', true);
+                return;
+            }
+
+            showLoading('youtubeSearchResult');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/youtube/search`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        input_text: query
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    showResult('youtubeSearchResult', data.output_text);
+                } else {
+                    showResult('youtubeSearchResult', `오류: ${data.detail || '알 수 없는 오류'}`, true);
+                }
+            } catch (error) {
+                showResult('youtubeSearchResult', `네트워크 오류: ${error.message}`, true);
+            }
+        }
+
+        // YouTube 인기 동영상
+        async function getTrendingVideos() {
+            const region = document.getElementById('trendingRegion').value;
+            showLoading('trendingResult');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/youtube/trending`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        input_text: region
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    showResult('trendingResult', data.output_text);
+                } else {
+                    showResult('trendingResult', `오류: ${data.detail || '알 수 없는 오류'}`, true);
+                }
+            } catch (error) {
+                showResult('trendingResult', `네트워크 오류: ${error.message}`, true);
+            }
+        }
+
+        // OpenAI 질문
+        async function askOpenAI() {
+            const question = document.getElementById('openaiQuestion').value;
+            if (!question.trim()) {
+                showResult('openaiResult', '질문을 입력해주세요.', true);
+                return;
+            }
+
+            showLoading('openaiResult');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/ask`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        input_text: question
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    showResult('openaiResult', data.output_text);
+                } else {
+                    showResult('openaiResult', `오류: ${data.detail || '알 수 없는 오류'}`, true);
+                }
+            } catch (error) {
+                showResult('openaiResult', `네트워크 오류: ${error.message}`, true);
+            }
+        }
+
+        // 개념 설명
+        async function explainConcept() {
+            const concept = document.getElementById('conceptToExplain').value;
+            if (!concept.trim()) {
+                showResult('explainResult', '개념을 입력해주세요.', true);
+                return;
+            }
+
+            showLoading('explainResult');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/explain`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        input_text: concept
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    showResult('explainResult', data.output_text);
+                } else {
+                    showResult('explainResult', `오류: ${data.detail || '알 수 없는 오류'}`, true);
+                }
+            } catch (error) {
+                showResult('explainResult', `네트워크 오류: ${error.message}`, true);
+            }
+        }
+
+        // 농담 생성
+        async function generateJoke() {
+            const topic = document.getElementById('jokeTopic').value;
+            if (!topic.trim()) {
+                showResult('jokeResult', '농담 주제를 입력해주세요.', true);
+                return;
+            }
+
+            showLoading('jokeResult');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/joke`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        input_text: topic
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    showResult('jokeResult', data.output_text);
+                } else {
+                    showResult('jokeResult', `오류: ${data.detail || '알 수 없는 오류'}`, true);
+                }
+            } catch (error) {
+                showResult('jokeResult', `네트워크 오류: ${error.message}`, true);
+            }
+        }
+
+        // 일반적인 도구 호출
+        async function callTool() {
+            const toolName = document.getElementById('toolName').value;
+            const argumentsText = document.getElementById('toolArguments').value;
+            
+            if (!argumentsText.trim()) {
+                showResult('toolResult', '인수를 입력해주세요.', true);
+                return;
+            }
+
+            let arguments;
+            try {
+                arguments = JSON.parse(argumentsText);
+            } catch (error) {
+                showResult('toolResult', `JSON 형식 오류: ${error.message}`, true);
+                return;
+            }
+
+            showLoading('toolResult');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/call`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        tool_name: toolName,
+                        arguments: arguments
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    if (data.success) {
+                        showResult('toolResult', data.result);
+                    } else {
+                        showResult('toolResult', `오류: ${data.error || '알 수 없는 오류'}`, true);
+                    }
+                } else {
+                    showResult('toolResult', `HTTP 오류: ${data.detail || '알 수 없는 오류'}`, true);
+                }
+            } catch (error) {
+                showResult('toolResult', `네트워크 오류: ${error.message}`, true);
+            }
+        }
+
+        // 페이지 로드 시 서버 상태 확인
+        document.addEventListener('DOMContentLoaded', function() {
+            checkServerStatus();
+            // 5초마다 서버 상태 확인
+            setInterval(checkServerStatus, 5000);
+        });
+    </script>
+</body>
+</html>
