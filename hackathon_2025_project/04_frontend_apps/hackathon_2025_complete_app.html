@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카카오페이증권 - AI 투자교육 플랫폼</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="kakao_securities_ui.css">
+    <style>
+        /* 카카오페이증권 스타일 */
+        :root {
+            --kakao-yellow: #FEE500;
+            --kakao-black: #3C1E1E;
+            --kakao-gray-100: #F2F3F5;
+            --kakao-gray-200: #E5E8EB;
+            --kakao-gray-300: #D1D6DB;
+            --kakao-gray-400: #9AA1A9;
+            --kakao-gray-500: #737B84;
+            --kakao-gray-600: #4E5968;
+            --kakao-gray-700: #333D4B;
+            --kakao-gray-800: #191F28;
+            --kakao-blue: #4285F4;
+            --kakao-green: #00C851;
+            --kakao-red: #FF4444;
+            --gradient-primary: linear-gradient(135deg, #FEE500 0%, #FFD700 100%);
+            --gradient-card: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            --gradient-dark: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--kakao-gray-100);
+            color: var(--kakao-gray-800);
+            line-height: 1.6;
+        }
+
+        .kakao-header {
+            background: var(--gradient-primary);
+            padding: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .kakao-header h1 {
+            color: var(--kakao-black);
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .kakao-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin: 1rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid var(--kakao-gray-200);
+        }
+
+        .kakao-button {
+            background: var(--gradient-primary);
+            color: var(--kakao-black);
+            border: none;
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .kakao-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(254, 229, 0, 0.3);
+        }
+
+        .kakao-button-secondary {
+            background: white;
+            color: var(--kakao-gray-700);
+            border: 2px solid var(--kakao-gray-300);
+        }
+
+        .kakao-button-secondary:hover {
+            background: var(--kakao-gray-100);
+            transform: translateY(-1px);
+        }
+
+        .kakao-tab {
+            display: flex;
+            background: white;
+            border-radius: 12px;
+            padding: 0.25rem;
+            margin: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .kakao-tab button {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .kakao-tab button.active {
+            background: var(--gradient-primary);
+            color: var(--kakao-black);
+        }
+
+        .agent-card {
+            background: var(--gradient-card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin: 1rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid var(--kakao-gray-200);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .agent-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        .agent-card.selected {
+            border: 2px solid var(--kakao-yellow);
+            background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%);
+        }
+
+        .mbti-badge {
+            background: var(--gradient-primary);
+            color: var(--kakao-black);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+            margin: 0.25rem;
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--kakao-gray-300);
+            border-top: 2px solid var(--kakao-yellow);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: var(--kakao-red);
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem;
+            border-left: 4px solid var(--kakao-red);
+        }
+
+        .success-message {
+            background: #e8f5e8;
+            color: var(--kakao-green);
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem;
+            border-left: 4px solid var(--kakao-green);
+        }
+
+        .user-selector {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .user-selector select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--kakao-gray-300);
+            border-radius: 8px;
+            font-size: 1rem;
+            background: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--kakao-blue);
+        }
+
+        .stat-label {
+            color: var(--kakao-gray-500);
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+
+        .chat-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            height: 500px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        .chat-header {
+            background: var(--gradient-primary);
+            padding: 1rem;
+            border-radius: 16px 16px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .chat-input {
+            padding: 1rem;
+            border-top: 1px solid var(--kakao-gray-200);
+        }
+
+        .chat-input input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--kakao-gray-300);
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .message {
+            padding: 0.75rem;
+            border-radius: 12px;
+            max-width: 80%;
+        }
+
+        .message.user {
+            background: var(--gradient-primary);
+            color: var(--kakao-black);
+            align-self: flex-end;
+        }
+
+        .message.agent {
+            background: var(--kakao-gray-100);
+            color: var(--kakao-gray-800);
+            align-self: flex-start;
+        }
+
+        .dark-mode {
+            background: var(--kakao-gray-800);
+            color: white;
+        }
+
+        .dark-mode .kakao-card,
+        .dark-mode .agent-card,
+        .dark-mode .stat-card {
+            background: var(--kakao-gray-700);
+            color: white;
+        }
+
+        .dark-mode .kakao-tab {
+            background: var(--kakao-gray-700);
+        }
+
+        .dark-mode .kakao-tab button {
+            color: white;
+        }
+
+        .dark-mode .kakao-tab button.active {
+            background: var(--gradient-primary);
+            color: var(--kakao-black);
+        }
+
+        .dark-mode .chat-container {
+            background: var(--kakao-gray-700);
+        }
+
+        .dark-mode .message.agent {
+            background: var(--kakao-gray-600);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .kakao-card, .agent-card {
+                margin: 0.5rem;
+                padding: 1rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+                margin: 0.5rem;
+            }
+
+            .chat-container {
+                width: calc(100vw - 40px);
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        // ========================= API Service =========================
+        class SecuritiesDataService {
+            constructor() {
+                this.baseURL = 'http://localhost:5001/api';
+            }
+
+            async request(endpoint, options = {}) {
+                try {
+                    const response = await fetch(`${this.baseURL}${endpoint}`, {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...options.headers
+                        },
+                        ...options
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    console.error('API request failed:', error);
+                    throw error;
+                }
+            }
+
+            // 사용자 관련 API
+            async getUsers() {
+                return this.request('/users');
+            }
+
+            async getUser(userId) {
+                return this.request(`/users/${userId}`);
+            }
+
+            // 거래 관련 API
+            async getUserTrades(userId, limit = 50) {
+                return this.request(`/users/${userId}/trades?limit=${limit}`);
+            }
+
+            async getUserBehaviors(userId, days = 30) {
+                return this.request(`/users/${userId}/behaviors?days=${days}`);
+            }
+
+            async getUserWatchlist(userId) {
+                return this.request(`/users/${userId}/watchlist`);
+            }
+
+            async getUserAccountBalance(userId) {
+                return this.request(`/users/${userId}/account-balance`);
+            }
+
+            // MBTI 관련 API
+            async getMBTIRecommendation(userId) {
+                return this.request(`/users/${userId}/mbti-recommendation`);
+            }
+
+            async getMBTIAnalysis(userId) {
+                return this.request(`/users/${userId}/mbti-analysis`);
+            }
+
+            async getMBTIQuestionnaire() {
+                return this.request('/mbti/questionnaire');
+            }
+
+            async calculateMBTIFromQuestionnaire(answers) {
+                return this.request('/mbti/calculate', {
+                    method: 'POST',
+                    body: JSON.stringify({ answers })
+                });
+            }
+
+            async getMBTITypes() {
+                return this.request('/mbti/types');
+            }
+        }
+
+        // ========================= React Hooks =========================
+        function useUsers() {
+            const [users, setUsers] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+
+            useEffect(() => {
+                const fetchUsers = async () => {
+                    try {
+                        setLoading(true);
+                        const data = await new SecuritiesDataService().getUsers();
+                        setUsers(data);
+                    } catch (err) {
+                        setError(err.message);
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+
+                fetchUsers();
+            }, []);
+
+            return { users, loading, error };
+        }
+
+        function useUserData(userId) {
+            const [userData, setUserData] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+
+            useEffect(() => {
+                if (!userId) return;
+
+                const fetchUserData = async () => {
+                    try {
+                        setLoading(true);
+                        const service = new SecuritiesDataService();
+                        const [user, trades, behaviors, watchlist, balance] = await Promise.all([
+                            service.getUser(userId),
+                            service.getUserTrades(userId),
+                            service.getUserBehaviors(userId),
+                            service.getUserWatchlist(userId),
+                            service.getUserAccountBalance(userId)
+                        ]);
+
+                        setUserData({
+                            user,
+                            trades,
+                            behaviors,
+                            watchlist,
+                            balance
+                        });
+                    } catch (err) {
+                        setError(err.message);
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+
+                fetchUserData();
+            }, [userId]);
+
+            return { userData, loading, error };
+        }
+
+        function useMBTIRecommendation(userId) {
+            const [recommendation, setRecommendation] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState(null);
+
+            const fetchRecommendation = async () => {
+                if (!userId) return;
+
+                try {
+                    setLoading(true);
+                    setError(null);
+                    const data = await new SecuritiesDataService().getMBTIRecommendation(userId);
+                    setRecommendation(data);
+                } catch (err) {
+                    setError(err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return { recommendation, loading, error, fetchRecommendation };
+        }
+
+        // ========================= Types =========================
+        const AGENTS = [
+            { id: "growth", name: "불꽃 호랑이", summary: "뜨거운 성장주에 올인하는 모험가형.", icon: "🔥", syllabus: ["성장주 찾기", "실적 모멘텀", "섹터 순환"] },
+            { id: "dividend", name: "든든 올빼미", summary: "배당으로 매달 용돈 받는 안정형.", icon: "🦉", syllabus: ["배당 일정", "꾸준한 기업", "금리 체크"] },
+            { id: "index", name: "거북이 플랜", summary: "ETF 적립으로 느긋하게 장기투자.", icon: "🐢", syllabus: ["ETF 기본", "리밸런싱", "분산투자"] },
+            { id: "value", name: "가치 여우", summary: "숨은 보석 찾아 모으는 저평가 헌터.", icon: "🦊", syllabus: ["PER/PB 보기", "안전마진", "경기 사이클"] },
+            { id: "quant", name: "룰 기반 까마귀", summary: "데이터와 규칙으로만 판단하는 이성형.", icon: "🐦‍⬛", syllabus: ["팩터 투자", "백테스트", "비중 조정"] },
+            { id: "esg", name: "초록 사슴", summary: "환경·사회도 챙기는 착한 투자.", icon: "🦌", syllabus: ["ESG 지표", "임팩트", "그린워싱 체크"] }
+        ];
+
+        const STANDARD_AGENT = { 
+            id: "standard", 
+            name: "스탠다드 버디", 
+            summary: "투자 입문자를 위한 기본 가이드.", 
+            icon: "📚", 
+            syllabus: ["주식/ETF 기초", "거래화면 튜토리얼", "리스크 기본"] 
+        };
+
+        // ========================= Components =========================
+        function UserSelector({ users, selectedUser, onUserChange, loading }) {
+            if (loading) {
+                return (
+                    <div className="user-selector">
+                        <div className="loading-spinner"></div>
+                        <p>사용자 목록을 불러오는 중...</p>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="user-selector">
+                    <h3>사용자 선택</h3>
+                    <select value={selectedUser || ''} onChange={(e) => onUserChange(e.target.value)}>
+                        <option value="">사용자를 선택하세요</option>
+                        {users.map(user => (
+                            <option key={user.user_id} value={user.user_id}>
+                                {user.name} ({user.user_id})
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            );
+        }
+
+        function UserOverview({ userData, loading, error }) {
+            if (loading) {
+                return (
+                    <div className="kakao-card">
+                        <div className="loading-spinner"></div>
+                        <p>사용자 데이터를 불러오는 중...</p>
+                    </div>
+                );
+            }
+
+            if (error) {
+                return (
+                    <div className="error-message">
+                        <h3>데이터 로드 오류</h3>
+                        <p>{error}</p>
+                    </div>
+                );
+            }
+
+            if (!userData) {
+                return (
+                    <div className="kakao-card">
+                        <p>사용자를 선택해주세요.</p>
+                    </div>
+                );
+            }
+
+            const { user, trades, behaviors, watchlist, balance } = userData;
+
+            // 거래 통계 계산
+            const totalTrades = trades.length;
+            const buyTrades = trades.filter(t => t.trade_type === 'buy').length;
+            const sellTrades = trades.filter(t => t.trade_type === 'sell').length;
+            const totalAmount = trades.reduce((sum, t) => sum + (t.trade_amount || 0), 0);
+            const totalProfit = trades.reduce((sum, t) => sum + (t.profit_loss || 0), 0);
+
+            return (
+                <div>
+                    <div className="kakao-card">
+                        <h2>👤 사용자 정보</h2>
+                        <div className="stats-grid">
+                            <div className="stat-card">
+                                <div className="stat-value">{user.name}</div>
+                                <div className="stat-label">이름</div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-value">{user.age}세</div>
+                                <div className="stat-label">나이</div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-value">{user.gender}</div>
+                                <div className="stat-label">성별</div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-value">{user.occupation}</div>
+                                <div className="stat-label">직업</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="kakao-card">
+                        <h2>💰 계좌 정보</h2>
+                        <div className="stats-grid">
+                            <div className="stat-card">
+                                <div className="stat-value">{balance?.cash_balance?.toLocaleString() || 0}원</div>
+                                <div className="stat-label">현금 잔고</div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-value">{balance?.stock_value?.toLocaleString() || 0}원</div>
+                                <div className="stat-label">주식 평가액</div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-value">{balance?.total_assets?.toLocaleString() || 0}원</div>
+                                <div className="stat-label">총 자산</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="kakao-card">
+                        <h2>📈 거래 통계</h2>
+                        <div className="stats-grid">
+                            <div className="stat-card">
+                                <div className="stat-value">{totalTrades}</div>
+                                <div className="stat-label">총 거래 횟수</div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-value">{buyTrades}</div>
+                                <div className="stat-label">매수 거래</div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-value">{sellTrades}</div>
+                                <div className="stat-label">매도 거래</div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-value">{totalAmount.toLocaleString()}원</div>
+                                <div className="stat-label">총 거래금액</div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-value" style={{ color: totalProfit >= 0 ? 'var(--kakao-green)' : 'var(--kakao-red)' }}>
+                                    {totalProfit >= 0 ? '+' : ''}{totalProfit.toLocaleString()}원
+                                </div>
+                                <div className="stat-label">총 손익</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="kakao-card">
+                        <h2>👀 관심종목 ({watchlist.length}개)</h2>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                            {watchlist.slice(0, 10).map((item, index) => (
+                                <span key={index} className="mbti-badge">
+                                    {item.symbol} ({item.current_price}원)
+                                </span>
+                            ))}
+                            {watchlist.length > 10 && (
+                                <span className="mbti-badge">+{watchlist.length - 10}개 더</span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function MBTIRecommendation({ userId, recommendation, loading, error, onFetchRecommendation }) {
+            if (!userId) {
+                return (
+                    <div className="kakao-card">
+                        <p>사용자를 선택해주세요.</p>
+                    </div>
+                );
+            }
+
+            if (loading) {
+                return (
+                    <div className="kakao-card">
+                        <div className="loading-spinner"></div>
+                        <p>MBTI 분석 중...</p>
+                    </div>
+                );
+            }
+
+            if (error) {
+                return (
+                    <div className="error-message">
+                        <h3>MBTI 분석 오류</h3>
+                        <p>{error}</p>
+                        <button className="kakao-button" onClick={onFetchRecommendation}>
+                            다시 시도
+                        </button>
+                    </div>
+                );
+            }
+
+            if (!recommendation) {
+                return (
+                    <div className="kakao-card">
+                        <h2>🎯 투자 MBTI 추천</h2>
+                        <p>AI가 당신의 투자 성향을 분석하여 맞춤형 투자 유형을 추천해드립니다.</p>
+                        <button className="kakao-button" onClick={onFetchRecommendation}>
+                            MBTI 분석 시작
+                        </button>
+                    </div>
+                );
+            }
+
+            const { recommended_type, confidence, analysis_details } = recommendation;
+            const agent = AGENTS.find(a => a.id === recommended_type) || STANDARD_AGENT;
+
+            return (
+                <div>
+                    <div className="kakao-card">
+                        <h2>🎯 당신의 투자 MBTI</h2>
+                        <div className="agent-card selected">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                                <div style={{ fontSize: '3rem' }}>{agent.icon}</div>
+                                <div>
+                                    <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{agent.name}</h3>
+                                    <p style={{ color: 'var(--kakao-gray-600)' }}>{agent.summary}</p>
+                                </div>
+                            </div>
+                            <div style={{ marginBottom: '1rem' }}>
+                                <strong>신뢰도: {Math.round(confidence * 100)}%</strong>
+                            </div>
+                            <div>
+                                <h4>추천 학습 주제:</h4>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.5rem' }}>
+                                    {agent.syllabus.map((topic, index) => (
+                                        <span key={index} className="mbti-badge">{topic}</span>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {analysis_details && (
+                        <div className="kakao-card">
+                            <h3>📊 분석 상세</h3>
+                            <div className="stats-grid">
+                                {Object.entries(analysis_details).map(([key, value]) => (
+                                    <div key={key} className="stat-card">
+                                        <div className="stat-value">{Math.round(value * 100)}%</div>
+                                        <div className="stat-label">{key}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        function AgentSelector({ selectedAgent, onAgentChange }) {
+            return (
+                <div className="kakao-card">
+                    <h2>🤖 AI 투자 에이전트 선택</h2>
+                    <p>원하는 투자 성향의 AI 에이전트를 선택하세요.</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
+                        {[STANDARD_AGENT, ...AGENTS].map(agent => (
+                            <div
+                                key={agent.id}
+                                className={`agent-card ${selectedAgent === agent.id ? 'selected' : ''}`}
+                                onClick={() => onAgentChange(agent.id)}
+                            >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                    <div style={{ fontSize: '2rem' }}>{agent.icon}</div>
+                                    <div>
+                                        <h3>{agent.name}</h3>
+                                        <p style={{ color: 'var(--kakao-gray-600)', fontSize: '0.9rem' }}>{agent.summary}</p>
+                                    </div>
+                                </div>
+                                <div style={{ marginTop: '1rem' }}>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
+                                        {agent.syllabus.slice(0, 3).map((topic, index) => (
+                                            <span key={index} style={{ 
+                                                background: 'var(--kakao-gray-200)', 
+                                                padding: '0.25rem 0.5rem', 
+                                                borderRadius: '12px', 
+                                                fontSize: '0.75rem' 
+                                            }}>
+                                                {topic}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        function TradingAnalysis({ userData, loading, error }) {
+            if (loading) {
+                return (
+                    <div className="kakao-card">
+                        <div className="loading-spinner"></div>
+                        <p>거래 데이터를 분석하는 중...</p>
+                    </div>
+                );
+            }
+
+            if (error) {
+                return (
+                    <div className="error-message">
+                        <h3>거래 분석 오류</h3>
+                        <p>{error}</p>
+                    </div>
+                );
+            }
+
+            if (!userData) {
+                return (
+                    <div className="kakao-card">
+                        <p>사용자를 선택해주세요.</p>
+                    </div>
+                );
+            }
+
+            const { trades } = userData;
+
+            // 거래 분석
+            const tradeBySymbol = {};
+            trades.forEach(trade => {
+                if (!tradeBySymbol[trade.symbol]) {
+                    tradeBySymbol[trade.symbol] = { total_amount: 0, total_quantity: 0, total_profit: 0, trades: [] };
+                }
+                tradeBySymbol[trade.symbol].total_amount += trade.trade_amount || 0;
+                tradeBySymbol[trade.symbol].total_quantity += trade.quantity || 0;
+                tradeBySymbol[trade.symbol].total_profit += trade.profit_loss || 0;
+                tradeBySymbol[trade.symbol].trades.push(trade);
+            });
+
+            const topSymbols = Object.entries(tradeBySymbol)
+                .sort((a, b) => b[1].total_amount - a[1].total_amount)
+                .slice(0, 10);
+
+            return (
+                <div>
+                    <div className="kakao-card">
+                        <h2>📊 거래 분석</h2>
+                        <p>당신의 거래 패턴을 분석해드립니다.</p>
+                    </div>
+
+                    <div className="kakao-card">
+                        <h3>🏆 주요 거래 종목</h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            {topSymbols.map(([symbol, data], index) => (
+                                <div key={symbol} style={{ 
+                                    display: 'flex', 
+                                    justifyContent: 'space-between', 
+                                    alignItems: 'center',
+                                    padding: '1rem',
+                                    background: 'var(--kakao-gray-100)',
+                                    borderRadius: '8px'
+                                }}>
+                                    <div>
+                                        <strong>{symbol}</strong>
+                                        <div style={{ fontSize: '0.9rem', color: 'var(--kakao-gray-600)' }}>
+                                            {data.trades.length}회 거래
+                                        </div>
+                                    </div>
+                                    <div style={{ textAlign: 'right' }}>
+                                        <div>{data.total_amount.toLocaleString()}원</div>
+                                        <div style={{ 
+                                            color: data.total_profit >= 0 ? 'var(--kakao-green)' : 'var(--kakao-red)',
+                                            fontSize: '0.9rem'
+                                        }}>
+                                            {data.total_profit >= 0 ? '+' : ''}{data.total_profit.toLocaleString()}원
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="kakao-card">
+                        <h3>📈 최근 거래 내역</h3>
+                        <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                            {trades.slice(0, 20).map((trade, index) => (
+                                <div key={index} style={{ 
+                                    display: 'flex', 
+                                    justifyContent: 'space-between', 
+                                    alignItems: 'center',
+                                    padding: '0.75rem',
+                                    borderBottom: '1px solid var(--kakao-gray-200)'
+                                }}>
+                                    <div>
+                                        <strong>{trade.symbol}</strong>
+                                        <div style={{ fontSize: '0.9rem', color: 'var(--kakao-gray-600)' }}>
+                                            {trade.trade_type === 'buy' ? '매수' : '매도'} · {trade.quantity}주
+                                        </div>
+                                    </div>
+                                    <div style={{ textAlign: 'right' }}>
+                                        <div>{trade.trade_amount?.toLocaleString()}원</div>
+                                        <div style={{ 
+                                            color: trade.profit_loss >= 0 ? 'var(--kakao-green)' : 'var(--kakao-red)',
+                                            fontSize: '0.9rem'
+                                        }}>
+                                            {trade.profit_loss >= 0 ? '+' : ''}{trade.profit_loss?.toLocaleString()}원
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function AgentChat({ selectedAgent, isOpen, onClose }) {
+            const [messages, setMessages] = useState([]);
+            const [inputMessage, setInputMessage] = useState('');
+
+            useEffect(() => {
+                if (isOpen && messages.length === 0) {
+                    const agent = AGENTS.find(a => a.id === selectedAgent) || STANDARD_AGENT;
+                    setMessages([{
+                        type: 'agent',
+                        text: `안녕하세요! ${agent.name}입니다. 어떤 도움이 필요하신가요?`
+                    }]);
+                }
+            }, [isOpen, selectedAgent]);
+
+            const sendMessage = () => {
+                if (!inputMessage.trim()) return;
+
+                const newMessage = {
+                    type: 'user',
+                    text: inputMessage
+                };
+
+                setMessages(prev => [...prev, newMessage]);
+                setInputMessage('');
+
+                // AI 응답 시뮬레이션
+                setTimeout(() => {
+                    const agent = AGENTS.find(a => a.id === selectedAgent) || STANDARD_AGENT;
+                    const responses = {
+                        growth: [
+                            "성장주 투자에서는 실적 모멘텀이 중요합니다. 최근 실적 발표를 확인해보세요.",
+                            "섹터 로테이션을 고려하여 AI, 반도체, 2차전지 등 핫한 섹터를 추천드립니다.",
+                            "단기 변동성이 클 수 있으니 분할 매수를 고려해보세요."
+                        ],
+                        dividend: [
+                            "배당주 투자에서는 안정적인 현금흐름이 중요합니다.",
+                            "배당락일과 지급일을 미리 확인하여 타이밍을 맞춰보세요.",
+                            "금리 변동에 민감하니 금리 동향을 주의깊게 관찰하세요."
+                        ],
+                        index: [
+                            "ETF 투자는 장기적 관점에서 접근하는 것이 좋습니다.",
+                            "정기적인 리밸런싱으로 포트폴리오를 관리해보세요.",
+                            "비용이 낮은 ETF를 선택하여 수익률을 높여보세요."
+                        ],
+                        value: [
+                            "가치주 투자에서는 PER, PBR 등 밸류에이션 지표를 확인하세요.",
+                            "안전마진을 두고 투자하여 리스크를 관리하세요.",
+                            "경기 사이클을 고려하여 타이밍을 맞춰보세요."
+                        ],
+                        quant: [
+                            "정량적 분석을 통해 감정적 투자를 피하세요.",
+                            "백테스트 결과를 바탕으로 전략을 수립하세요.",
+                            "팩터 투자를 통해 분산투자 효과를 높여보세요."
+                        ],
+                        esg: [
+                            "ESG 지표를 확인하여 지속가능한 투자를 하세요.",
+                            "환경, 사회, 지배구조를 종합적으로 평가해보세요.",
+                            "임팩트 투자를 통해 사회적 가치도 창출해보세요."
+                        ],
+                        standard: [
+                            "투자 기초부터 차근차근 학습해보세요.",
+                            "리스크 관리가 투자의 핵심입니다.",
+                            "장기적 관점에서 투자 계획을 세워보세요."
+                        ]
+                    };
+
+                    const agentResponses = responses[selectedAgent] || responses.standard;
+                    const randomResponse = agentResponses[Math.floor(Math.random() * agentResponses.length)];
+
+                    setMessages(prev => [...prev, {
+                        type: 'agent',
+                        text: randomResponse
+                    }]);
+                }, 1000);
+            };
+
+            if (!isOpen) return null;
+
+            const agent = AGENTS.find(a => a.id === selectedAgent) || STANDARD_AGENT;
+
+            return (
+                <div className="chat-container">
+                    <div className="chat-header">
+                        <div>
+                            <h3>{agent.name}</h3>
+                            <p style={{ fontSize: '0.8rem', margin: 0 }}>{agent.summary}</p>
+                        </div>
+                        <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>
+                            ✕
+                        </button>
+                    </div>
+                    <div className="chat-messages">
+                        {messages.map((message, index) => (
+                            <div key={index} className={`message ${message.type}`}>
+                                {message.text}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="chat-input">
+                        <input
+                            type="text"
+                            value={inputMessage}
+                            onChange={(e) => setInputMessage(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                            placeholder="메시지를 입력하세요..."
+                        />
+                    </div>
+                </div>
+            );
+        }
+
+        // ========================= Main App =========================
+        function KakaoSecuritiesApp() {
+            const [selectedUser, setSelectedUser] = useState(null);
+            const [selectedAgent, setSelectedAgent] = useState('standard');
+            const [activeTab, setActiveTab] = useState('overview');
+            const [darkMode, setDarkMode] = useState(false);
+            const [chatOpen, setChatOpen] = useState(false);
+
+            const { users, loading: usersLoading, error: usersError } = useUsers();
+            const { userData, loading: userDataLoading, error: userDataError } = useUserData(selectedUser);
+            const { recommendation, loading: mbtiLoading, error: mbtiError, fetchRecommendation } = useMBTIRecommendation(selectedUser);
+
+            const tabs = [
+                { id: 'overview', label: '📊 개요', component: <UserOverview userData={userData} loading={userDataLoading} error={userDataError} /> },
+                { id: 'mbti', label: '🎯 MBTI 추천', component: <MBTIRecommendation userId={selectedUser} recommendation={recommendation} loading={mbtiLoading} error={mbtiError} onFetchRecommendation={fetchRecommendation} /> },
+                { id: 'trading', label: '📈 거래 분석', component: <TradingAnalysis userData={userData} loading={userDataLoading} error={userDataError} /> },
+                { id: 'agents', label: '🤖 AI 에이전트', component: <AgentSelector selectedAgent={selectedAgent} onAgentChange={setSelectedAgent} /> }
+            ];
+
+            return (
+                <div className={darkMode ? 'dark-mode' : ''}>
+                    <header className="kakao-header">
+                        <h1>🏦 카카오페이증권 AI 투자교육</h1>
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '0.5rem' }}>
+                            <button 
+                                className="kakao-button-secondary"
+                                onClick={() => setDarkMode(!darkMode)}
+                            >
+                                {darkMode ? '☀️ 라이트 모드' : '🌙 다크 모드'}
+                            </button>
+                            <button 
+                                className="kakao-button"
+                                onClick={() => setChatOpen(true)}
+                            >
+                                💬 AI 채팅
+                            </button>
+                        </div>
+                    </header>
+
+                    <UserSelector 
+                        users={users} 
+                        selectedUser={selectedUser} 
+                        onUserChange={setSelectedUser}
+                        loading={usersLoading}
+                    />
+
+                    {usersError && (
+                        <div className="error-message">
+                            <h3>사용자 목록 로드 오류</h3>
+                            <p>{usersError}</p>
+                        </div>
+                    )}
+
+                    <div className="kakao-tab">
+                        {tabs.map(tab => (
+                            <button
+                                key={tab.id}
+                                className={activeTab === tab.id ? 'active' : ''}
+                                onClick={() => setActiveTab(tab.id)}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    {tabs.find(tab => tab.id === activeTab)?.component}
+
+                    <AgentChat 
+                        selectedAgent={selectedAgent} 
+                        isOpen={chatOpen} 
+                        onClose={() => setChatOpen(false)} 
+                    />
+                </div>
+            );
+        }
+
+        // ========================= Render =========================
+        ReactDOM.render(<KakaoSecuritiesApp />, document.getElementById('root'));
+    </script>
+</body>
+</html>

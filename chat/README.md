@@ -40,7 +40,7 @@ python3 chat_server.py
 ```
 
 ### 클라이언트 접속
-- 웹 브라우저에서 `http://localhost:8001/chat/test` 접속
+- 웹 브라우저에서 `http://localhost:8001/chat` 접속
 
 ## 🔧 주요 기능
 

@@ -25,6 +25,7 @@ from memory.memory_manager import memory_manager
 from memory.context_resolver import context_resolver
 from patterns.pattern_learner import pattern_learner
 from patterns.dynamic_pattern_manager import dynamic_pattern_manager
+from chat_server_analyze import user_analyzer
 
 # .env 파일에서 환경 변수 로드
 load_dotenv()
@@ -51,7 +52,7 @@ YOUTUBE_BASE_URL = "https://www.googleapis.com/youtube/v3"
 # 요청/응답 모델
 class ChatMessage(BaseModel):
     message: str
-    user_id: Optional[str] = "default"
+    user_id: Optional[str] = None
 
 class ChatResponse(BaseModel):
     type: str
@@ -440,6 +441,38 @@ https://www.youtube.com/watch?v={video_id}
             
         except Exception as e:
             return f"Error getting trending videos: {str(e)}"
+    
+    @staticmethod
+    def search_stock_news(query: str = None, max_results: int = 5, user_id: str = None) -> str:
+        """주식 뉴스 검색 (YouTube 검색 활용)"""
+        try:
+            # user_id 파라미터가 있으면 새로운 분석 기능 사용
+            if user_id:
+                return user_analyzer.get_purchased_stocks_news(user_id)
+            else:
+                # 기존 YouTube 검색 기능
+                news_query = f"{query} 뉴스 투자 분석"
+                return ExternalTools.search_youtube(news_query, max_results)
+        except Exception as e:
+            return f"""안녕하세요! 주식 뉴스 검색 중 오류가 발생했습니다.
+
+오류 내용: {str(e)}
+
+다시 시도해보시거나 다른 검색어를 사용해보시는 것을 추천드립니다. 😊"""
+    
+    @staticmethod
+    def search_similar_stocks(query: str, max_results: int = 5) -> str:
+        """비슷한 성향 주식 검색 (YouTube 검색 활용)"""
+        try:
+            # 비슷한 투자 성향 주식 관련 검색어로 YouTube 검색
+            similar_query = f"{query} 추천 주식 투자"
+            return ExternalTools.search_youtube(similar_query, max_results)
+        except Exception as e:
+            return f"""안녕하세요! 비슷한 성향 주식 검색 중 오류가 발생했습니다.
+
+오류 내용: {str(e)}
+
+다시 시도해보시거나 다른 검색어를 사용해보시는 것을 추천드립니다. 😊"""
 
 # 메시지 분석 및 도구 선택
 class MessageAnalyzer:
@@ -480,9 +513,19 @@ class MessageAnalyzer:
                 r'https://www\.youtube\.com/watch\?v=[a-zA-Z0-9_-]+',
                 r'youtube\.com/watch\?v=[a-zA-Z0-9_-]+'
             ],
+            'get_user_purchased_stocks_news': [
+                r'내가\s*산\s*종목\s*뉴스', r'보유\s*종목\s*뉴스', r'내\s*종목\s*뉴스', r'내가\s*산\s*주식\s*뉴스',
+                r'내가\s*산\s*종목', r'보유\s*종목', r'내\s*종목', r'내가\s*산\s*주식',
+                r'내가\s*산', r'보유\s*주식', r'내\s*주식'
+            ],
+            'get_similar_users_stocks': [
+                r'비슷한\s*성향.*관심.*주식', r'비슷한\s*성향.*주식', r'유사\s*성향.*주식',
+                r'같은\s*성향.*주식', r'비슷한\s*투자.*주식', r'유사\s*투자.*주식',
+                r'성향.*비슷한.*주식', r'투자.*성향.*주식', r'비슷한\s*성향', r'유사\s*성향'
+            ],
             'search_youtube': [
-                r'유튜브', r'youtube', r'검색', r'찾아줘', r'영상', r'비디오',
-                r'조선주', r'한화오션', r'주식', r'투자', r'김민수', r'대표'
+                r'유튜브', r'youtube', r'영상', r'비디오',
+                r'조선주', r'한화오션', r'김민수', r'대표'
             ],
             'get_trending_videos': [
                 r'인기', r'트렌딩', r'trending', r'인기동영상', r'핫한'
@@ -492,6 +535,10 @@ class MessageAnalyzer:
             ],
             'explain_concept': [
                 r'설명', r'뜻', r'의미', r'개념', r'이해', r'explain', r'concept'
+            ],
+            'direct_chat': [
+                r'직접\s*대화', r'자유\s*대화', r'일반\s*대화', r'자유롭게\s*대화',
+                r'직접\s*질문', r'자유\s*질문', r'일반\s*질문'
             ]
         }
         
@@ -578,6 +625,22 @@ class MessageAnalyzer:
             video_id = self._extract_video_id(message)
             return 'get_video_full_content', {'video_id': video_id}
         
+        elif tool_name == 'get_user_purchased_stocks_news':
+            # 내가 산 종목 뉴스 분석
+            return 'get_user_purchased_stocks_news', {'user_id': 'user_0001'}  # 기본값, 실제로는 user_id 파라미터에서 가져와야 함
+        
+        elif tool_name == 'search_stock_news':
+            # 주식 뉴스 검색 (user_id가 있으면 개인화된 분석)
+            return 'search_stock_news', {'query': '주식 뉴스', 'max_results': 5}  # user_id는 나중에 추가됨
+        
+        elif tool_name == 'get_similar_users_stocks':
+            # 비슷한 성향 유저들이 관심있게 본 주식 추천
+            return 'get_similar_users_stocks', {'user_id': 'user_0001'}  # 기본값, 실제로는 user_id 파라미터에서 가져와야 함
+        
+        elif tool_name == 'direct_chat':
+            # 직접 대화 - OpenAI 질문으로 처리
+            return 'ask_openai', {'question': message}
+        
         elif tool_name == 'get_trending_videos':
             # 지역 코드 추출
             region = self._extract_region(message)
@@ -639,13 +702,16 @@ async def stream_chat_response(message: str, user_id: str, request: Request):
     
     try:
         # 사용자 ID 우선순위: 1) 클라이언트 제공 ID, 2) IP + User-Agent 해시
+        print(f"DEBUG: Received user_id: '{user_id}'")
         if user_id and user_id.strip():
             actual_user_id = user_id.strip()
+            print(f"DEBUG: Using provided user_id: '{actual_user_id}'")
         else:
             # 사용자 ID 생성 (IP + User-Agent 해시)
             client_ip = request.client.host
             user_agent = request.headers.get("user-agent", "")
             actual_user_id = memory_manager.get_user_id(client_ip, user_agent)
+            print(f"DEBUG: Generated user_id: '{actual_user_id}'")
         
         # 사용자 메시지를 메모리에 저장
         memory_manager.add_message(actual_user_id, "user", message)
@@ -665,6 +731,10 @@ async def stream_chat_response(message: str, user_id: str, request: Request):
         
         # 도구 선택 및 실행 (대화 기록 포함)
         tool_name, args = analyzer.analyze_message(message, conversation_history)
+        
+        # user_id가 필요한 도구들에 대해 user_id 파라미터 추가
+        if tool_name in ['get_user_purchased_stocks_news', 'get_similar_users_stocks', 'search_stock_news']:
+            args['user_id'] = actual_user_id
         
         # 컨텍스트 분석 결과가 있으면 표시
         if 'context_analysis' in args and args['context_analysis'].get('has_reference'):
@@ -879,6 +949,7 @@ async def get_current_user_id(request: Request):
 @app.post("/chat/stream")
 async def chat_stream(request: ChatMessage, http_request: Request):
     """SSE 기반 채팅 스트리밍 (메모리 기능 포함)"""
+    print(f"DEBUG: Received request body - message: '{request.message}', user_id: '{request.user_id}'")
     return StreamingResponse(
         stream_chat_response(request.message, request.user_id, http_request),
         media_type="text/plain",
@@ -890,10 +961,23 @@ async def chat_stream(request: ChatMessage, http_request: Request):
     )
 
 @app.get("/chat/test", response_class=HTMLResponse)
-async def test_ui():
+async def test_ui(agent_id: str = "standard"):
     """메모리 기능 테스트 UI"""
-    with open("chat/client/chat_server_interface.html", "r", encoding="utf-8") as f:
-        return HTMLResponse(content=f.read())
+    # agent_id가 'growth'인 경우 chat_intro.html, 그 외에는 chat_main.html 사용
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    if agent_id == "growth":
+        html_file = os.path.join(current_dir, "..", "client", "chat_intro.html")
+    else:
+        html_file = os.path.join(current_dir, "..", "client", "chat_main.html")
+    
+    with open(html_file, "r", encoding="utf-8") as f:
+        content = f.read()
+        # agent_id를 HTML에 전달하기 위해 JavaScript 변수로 추가
+        content = content.replace(
+            '<script>',
+            f'<script>\n    const selectedAgentId = "{agent_id}";'
+        )
+        return HTMLResponse(content=content)
 
 @app.get("/chat/ui", response_class=HTMLResponse)
 async def chat_ui():
@@ -1141,6 +1225,10 @@ async def trigger_learning():
         return {"status": "success", "message": "학습이 완료되었습니다"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+# ExternalTools에 새로운 메서드 추가
+ExternalTools.get_user_purchased_stocks_news = staticmethod(lambda user_id=None: user_analyzer.get_purchased_stocks_news(user_id) if user_id else "사용자 ID가 필요합니다.")
+ExternalTools.get_similar_users_stocks = staticmethod(lambda user_id=None: user_analyzer.get_similar_users_stocks(user_id) if user_id else "사용자 ID가 필요합니다.")
 
 if __name__ == "__main__":
     import uvicorn

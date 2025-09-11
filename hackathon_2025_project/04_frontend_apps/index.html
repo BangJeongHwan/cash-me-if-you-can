@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>증권서비스 사용자 데이터 조회 - 메인 페이지</title>
+    <link rel="stylesheet" href="kakao_securities_ui.css">
+    <style>
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .hero-section {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .hero-title {
+            font-size: 48px;
+            font-weight: 800;
+            color: var(--kakao-black);
+            margin-bottom: 20px;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero-subtitle {
+            font-size: 20px;
+            color: var(--kakao-gray-600);
+            margin-bottom: 40px;
+        }
+        
+        .app-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+        
+        .app-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--kakao-gray-200);
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .app-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-5px);
+        }
+        
+        .app-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        .app-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--kakao-gray-800);
+            margin-bottom: 12px;
+        }
+        
+        .app-description {
+            font-size: 16px;
+            color: var(--kakao-gray-600);
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+        
+        .app-button {
+            display: inline-block;
+            padding: 16px 32px;
+            background: var(--gradient-primary);
+            color: var(--kakao-black);
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            font-size: 16px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+        }
+        
+        .app-button:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        
+        .app-button.secondary {
+            background: white;
+            color: var(--kakao-gray-700);
+            border: 2px solid var(--kakao-gray-200);
+        }
+        
+        .app-button.secondary:hover {
+            border-color: var(--kakao-yellow);
+        }
+        
+        .status-section {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            box-shadow: var(--shadow-card);
+            margin-bottom: 40px;
+        }
+        
+        .status-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--kakao-gray-800);
+            margin-bottom: 20px;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .status-item {
+            text-align: center;
+            padding: 20px;
+            background: var(--kakao-gray-100);
+            border-radius: var(--radius-md);
+        }
+        
+        .status-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--kakao-gray-800);
+            margin-bottom: 8px;
+        }
+        
+        .status-label {
+            font-size: 14px;
+            color: var(--kakao-gray-500);
+        }
+        
+        .instructions {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            box-shadow: var(--shadow-card);
+        }
+        
+        .instructions h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--kakao-gray-800);
+            margin-bottom: 20px;
+        }
+        
+        .instructions ol {
+            color: var(--kakao-gray-600);
+            line-height: 1.8;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        
+        .code-block {
+            background: var(--kakao-gray-800);
+            color: var(--kakao-gray-100);
+            padding: 16px;
+            border-radius: var(--radius-md);
+            font-family: var(--font-mono);
+            font-size: 14px;
+            margin: 12px 0;
+            overflow-x: auto;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 30px;
+            border-top: 1px solid var(--kakao-gray-200);
+            color: var(--kakao-gray-500);
+        }
+    </style>
+</head>
+<body>
+    <div class="securities-app">
+        <div class="main-container">
+            <!-- 히어로 섹션 -->
+            <div class="hero-section">
+                <h1 class="hero-title">📊 증권서비스 사용자 데이터 조회</h1>
+                <p class="hero-subtitle">카카오페이증권 스타일 UI로 구현된 투자 MBTI 추천 시스템</p>
+            </div>
+
+            <!-- 애플리케이션 링크 -->
+            <div class="app-links">
+                <div class="app-card">
+                    <div class="app-icon">🚀</div>
+                    <h3 class="app-title">실시간 웹 애플리케이션</h3>
+                    <p class="app-description">
+                        React 기반의 실시간 데이터 조회 및 MBTI 추천 시스템입니다. 
+                        사용자 데이터를 분석하여 투자 성향을 파악하고 맞춤형 MBTI를 추천합니다.
+                    </p>
+                    <a href="securities_web_app.html" class="app-button">
+                        🌐 웹 앱 실행하기
+                    </a>
+                </div>
+
+                <div class="app-card">
+                    <div class="app-icon">📱</div>
+                    <h3 class="app-title">데모 페이지</h3>
+                    <p class="app-description">
+                        시스템의 주요 기능과 MBTI 유형을 소개하는 데모 페이지입니다. 
+                        카카오페이증권 스타일의 UI 디자인을 확인할 수 있습니다.
+                    </p>
+                    <a href="securities_demo.html" class="app-button secondary">
+                        📖 데모 보기
+                    </a>
+                </div>
+
+                <div class="app-card">
+                    <div class="app-icon">🔧</div>
+                    <h3 class="app-title">개발자 도구</h3>
+                    <p class="app-description">
+                        API 서버 상태 확인, 데이터 생성, 테스트 스크립트 실행 등 
+                        개발 및 디버깅을 위한 도구들을 제공합니다.
+                    </p>
+                    <a href="#" onclick="showDevTools()" class="app-button secondary">
+                        🛠️ 개발자 도구
+                    </a>
+                </div>
+            </div>
+
+            <!-- 시스템 상태 -->
+            <div class="status-section">
+                <h3 class="status-title">📊 시스템 상태</h3>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <div class="status-value" id="api-status">확인 중...</div>
+                        <div class="status-label">API 서버</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-value">1,000</div>
+                        <div class="status-label">사용자 데이터</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-value">12,184</div>
+                        <div class="status-label">거래 데이터</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-value">34,640</div>
+                        <div class="status-label">행동 데이터</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 사용 안내 -->
+            <div class="instructions">
+                <h3>🚀 빠른 시작 가이드</h3>
+                <ol>
+                    <li><strong>웹 애플리케이션 실행:</strong> 위의 "웹 앱 실행하기" 버튼을 클릭하세요</li>
+                    <li><strong>사용자 선택:</strong> 드롭다운에서 분석할 사용자를 선택하세요</li>
+                    <li><strong>탭 탐색:</strong> 개요, MBTI 추천, 거래 분석, 프로필 탭을 확인하세요</li>
+                    <li><strong>MBTI 추천:</strong> AI가 분석한 투자 성향과 추천 MBTI 유형을 확인하세요</li>
+                </ol>
+
+                <h3 style="margin-top: 30px;">🛠️ 개발자용 명령어</h3>
+                <div class="code-block">
+# 더미 데이터 생성
+python securities_dummy_data_generator.py
+
+# API 서버 실행
+python securities_data_api_web.py
+
+# 웹 애플리케이션 자동 실행
+python run_web_app.py
+
+# MBTI 추천 테스트
+python test_mbti_recommendation.py
+                </div>
+            </div>
+
+            <!-- 푸터 -->
+            <div class="footer">
+                <p>© 2024 증권서비스 사용자 데이터 조회 시스템</p>
+                <p>카카오페이증권 스타일 UI로 구현된 투자 MBTI 추천 플랫폼</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API 상태 확인
+        async function checkAPIStatus() {
+            try {
+                const response = await fetch('http://localhost:5001/api/health');
+                if (response.ok) {
+                    document.getElementById('api-status').textContent = '연결됨';
+                    document.getElementById('api-status').style.color = 'var(--profit-green)';
+                } else {
+                    throw new Error('API 서버 응답 오류');
+                }
+            } catch (error) {
+                document.getElementById('api-status').textContent = '연결 실패';
+                document.getElementById('api-status').style.color = 'var(--profit-red)';
+            }
+        }
+
+        // 개발자 도구 표시
+        function showDevTools() {
+            alert('개발자 도구:\n\n' +
+                  '1. API 서버: http://localhost:5001\n' +
+                  '2. 헬스 체크: http://localhost:5001/api/health\n' +
+                  '3. MBTI 추천: http://localhost:5001/api/users/user_0001/mbti-recommendation\n' +
+                  '4. 터미널에서 "python run_web_app.py" 실행');
+        }
+
+        // 페이지 로드 시 API 상태 확인
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAPIStatus();
+            
+            // 5초마다 API 상태 재확인
+            setInterval(checkAPIStatus, 5000);
+        });
+
+        // 카드 호버 효과
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.app-card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-8px)';
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

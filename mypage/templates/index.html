@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>투자교육 AI 비서</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #000;
+            color: #fff;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #334155;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .btn {
+            background: #1e293b;
+            color: #fff;
+            border: 1px solid #475569;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            background: #334155;
+        }
+        
+        .btn-primary {
+            background: #10b981;
+            border-color: #10b981;
+        }
+        
+        .btn-primary:hover {
+            background: #059669;
+        }
+        
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .agent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .agent-card {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .agent-card:hover {
+            border-color: #10b981;
+            transform: translateY(-2px);
+        }
+        
+        .agent-card.selected {
+            border-color: #10b981;
+            background: #064e3b;
+        }
+        
+        .agent-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            color: #10b981;
+        }
+        
+        .agent-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .agent-summary {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        
+        .syllabus-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        
+        .tag {
+            background: #334155;
+            color: #e2e8f0;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .chat-container {
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 400px;
+            height: 100vh;
+            background: #0f172a;
+            border-left: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .chat-container.open {
+            transform: translateX(0);
+        }
+        
+        .chat-header {
+            padding: 20px;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 12px;
+            max-width: 80%;
+        }
+        
+        .message.user {
+            background: #064e3b;
+            margin-left: auto;
+            border: 1px solid #10b981;
+        }
+        
+        .message.assistant {
+            background: #1e293b;
+            border: 1px solid #334155;
+        }
+        
+        .chat-input {
+            padding: 20px;
+            border-top: 1px solid #334155;
+        }
+        
+        .chat-input textarea {
+            width: 100%;
+            padding: 12px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #fff;
+            resize: none;
+            height: 60px;
+        }
+        
+        .send-btn {
+            margin-top: 10px;
+            width: 100%;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #10b981;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            color: #ef4444;
+            background: #7f1d1d;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            color: #10b981;
+            background: #064e3b;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>투자교육 AI 비서</h1>
+            <div>
+                <button class="btn" onclick="openMemoModal()">📝 메모함</button>
+                <button class="btn" onclick="openAgentSelector()">🔄 Agent 선택</button>
+            </div>
+        </header>
+
+        <main>
+            <!-- 현재 선택된 Agent 표시 -->
+            <div class="card" id="currentAgent">
+                <h2>나의 현재 Agent</h2>
+                <div class="agent-card selected" id="selectedAgentCard">
+                    <div style="display: flex; align-items: center;">
+                        <span class="agent-icon">📚</span>
+                        <div>
+                            <div class="agent-name">스탠다드 버디</div>
+                            <div class="agent-summary">투자 입문자를 위한 기본 가이드</div>
+                        </div>
+                    </div>
+                    <div class="syllabus-tags">
+                        <span class="tag">주식/ETF 기초</span>
+                        <span class="tag">거래화면 튜토리얼</span>
+                        <span class="tag">리스크 기본</span>
+                    </div>
+                    <button class="btn btn-primary" style="margin-top: 15px;" onclick="openChat()">대화하기</button>
+                </div>
+            </div>
+
+            <!-- 데일리 코칭 섹션 -->
+            <div class="card">
+                <h2>데일리 코칭</h2>
+                <p style="color: #94a3b8; margin-bottom: 20px;">나의 학습과 투자를 돕는 맞춤 코칭 서비스</p>
+                
+                <div class="agent-grid">
+                    <div class="card" onclick="showReport()">
+                        <h3>📋 오늘의 3줄 리포트</h3>
+                        <p style="color: #94a3b8;">시장 인사이트와 학습을 쉽게 요약해 드려요.</p>
+                        <button class="btn" style="margin-top: 10px;">실행</button>
+                    </div>
+                    
+                    <div class="card" onclick="showPractice()">
+                        <h3>🎮 실습: 뉴스 기반 의사결정</h3>
+                        <p style="color: #94a3b8;">시나리오별 가상 매수/매도</p>
+                        <button class="btn" style="margin-top: 10px;">실행</button>
+                    </div>
+                    
+                    <div class="card" onclick="showRisk()">
+                        <h3>🛡️ 리스크 체크</h3>
+                        <p style="color: #94a3b8;">변동성·드로다운 체감</p>
+                        <button class="btn" style="margin-top: 10px;">실행</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 채팅 패널 -->
+    <div id="chatPanel" class="chat-container">
+        <div class="chat-header">
+            <h3 id="chatAgentName">스탠다드 버디</h3>
+            <button class="close-btn" onclick="closeChat()">&times;</button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message assistant">
+                <div style="font-size: 12px; opacity: 0.6; margin-bottom: 5px;">AI</div>
+                <div>안녕하세요! 스탠다드 버디 에이전트 모드로 대화를 시작할게요. 먼저 주제를 골라볼까요?</div>
+            </div>
+        </div>
+        <div class="chat-input">
+            <textarea id="chatInput" placeholder="메시지를 입력하세요..."></textarea>
+            <button class="btn btn-primary send-btn" onclick="sendMessage()">보내기</button>
+        </div>
+    </div>
+
+    <script>
+        // 전역 변수
+        let currentAgent = 'standard';
+        let agents = {};
+        
+        // API 호출 함수
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            try {
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                };
+                
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+                
+                const response = await fetch(`/api${endpoint}`, options);
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.error || 'API 호출 실패');
+                }
+                
+                return result;
+            } catch (error) {
+                console.error('API 호출 오류:', error);
+                showError(error.message);
+                throw error;
+            }
+        }
+        
+        // 에러 표시
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+            document.body.appendChild(errorDiv);
+            
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+        }
+        
+        // 성공 메시지 표시
+        function showSuccess(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success';
+            successDiv.textContent = message;
+            document.body.appendChild(successDiv);
+            
+            setTimeout(() => {
+                successDiv.remove();
+            }, 3000);
+        }
+        
+        // Agent 데이터 로드
+        async function loadAgents() {
+            try {
+                agents = await apiCall('/agents');
+                updateCurrentAgent();
+            } catch (error) {
+                console.error('Agent 데이터 로드 실패:', error);
+            }
+        }
+        
+        // Agent 선택
+        function selectAgent(agentId) {
+            currentAgent = agentId;
+            updateCurrentAgent();
+            closeAgentModal();
+        }
+        
+        // 현재 Agent 업데이트
+        function updateCurrentAgent() {
+            const agent = agents[currentAgent];
+            if (!agent) return;
+            
+            const card = document.getElementById('selectedAgentCard');
+            
+            card.innerHTML = `
+                <div style="display: flex; align-items: center;">
+                    <span class="agent-icon">${agent.icon}</span>
+                    <div>
+                        <div class="agent-name">${agent.name}</div>
+                        <div class="agent-summary">${agent.summary}</div>
+                    </div>
+                </div>
+                <div class="syllabus-tags">
+                    ${agent.syllabus.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                </div>
+                <button class="btn btn-primary" style="margin-top: 15px;" onclick="openChat()">대화하기</button>
+            `;
+            
+            // 채팅 Agent 이름도 업데이트
+            document.getElementById('chatAgentName').textContent = agent.name;
+        }
+        
+        // 모달 열기/닫기
+        function openAgentSelector() {
+            // Agent 선택 모달 구현
+            alert('Agent 선택 기능은 준비 중입니다.');
+        }
+        
+        function closeAgentModal() {
+            // 모달 닫기 구현
+        }
+        
+        function openMemoModal() {
+            // 메모 모달 구현
+            alert('메모 기능은 준비 중입니다.');
+        }
+        
+        function closeMemoModal() {
+            // 모달 닫기 구현
+        }
+        
+        // 채팅 열기/닫기
+        function openChat() {
+            // chat_server.py의 /chat 화면으로 이동
+            const chatUrl = `http://localhost:8001/chat/test?agent_id=${currentAgent}`;
+            window.open(chatUrl, '_blank');
+        }
+        
+        function closeChat() {
+            document.getElementById('chatPanel').classList.remove('open');
+        }
+        
+        // 메시지 전송
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            const messagesContainer = document.getElementById('chatMessages');
+            
+            // 사용자 메시지 추가
+            const userMessage = document.createElement('div');
+            userMessage.className = 'message user';
+            userMessage.innerHTML = `
+                <div style="font-size: 12px; opacity: 0.6; margin-bottom: 5px;">나</div>
+                <div>${message}</div>
+            `;
+            messagesContainer.appendChild(userMessage);
+            
+            // 로딩 표시
+            const loadingMessage = document.createElement('div');
+            loadingMessage.className = 'message assistant';
+            loadingMessage.innerHTML = `
+                <div style="font-size: 12px; opacity: 0.6; margin-bottom: 5px;">AI</div>
+                <div class="loading"></div>
+            `;
+            messagesContainer.appendChild(loadingMessage);
+            
+            input.value = '';
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            try {
+                // AI 응답 요청
+                const response = await apiCall('/chat', 'POST', {
+                    message: message,
+                    agent_id: currentAgent
+                });
+                
+                // 로딩 메시지 제거
+                loadingMessage.remove();
+                
+                // AI 응답 추가
+                const aiMessage = document.createElement('div');
+                aiMessage.className = 'message assistant';
+                aiMessage.innerHTML = `
+                    <div style="font-size: 12px; opacity: 0.6; margin-bottom: 5px;">AI</div>
+                    <div>${response.response}</div>
+                `;
+                messagesContainer.appendChild(aiMessage);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                
+            } catch (error) {
+                // 로딩 메시지 제거
+                loadingMessage.remove();
+                
+                // 에러 메시지 추가
+                const errorMessage = document.createElement('div');
+                errorMessage.className = 'message assistant';
+                errorMessage.innerHTML = `
+                    <div style="font-size: 12px; opacity: 0.6; margin-bottom: 5px;">AI</div>
+                    <div>죄송합니다. 일시적인 오류가 발생했습니다.</div>
+                `;
+                messagesContainer.appendChild(errorMessage);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        }
+        
+        // 엔터키로 메시지 전송
+        document.getElementById('chatInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        
+        // 코칭 기능들
+        async function showReport() {
+            try {
+                const response = await apiCall('/report', 'POST', {
+                    agent_id: currentAgent
+                });
+                
+                const report = response.report;
+                const reportText = report.lines.join('\n\n');
+                
+                if (confirm('3줄 리포트를 생성하고 메모로 저장하시겠습니까?')) {
+                    await apiCall('/memos', 'POST', {
+                        agent_id: currentAgent,
+                        title: `3줄 리포트 - ${agents[currentAgent].name}`,
+                        content: reportText
+                    });
+                    showSuccess('리포트가 메모로 저장되었습니다!');
+                }
+            } catch (error) {
+                console.error('리포트 생성 실패:', error);
+            }
+        }
+        
+        function showPractice() {
+            alert('실습 시나리오 기능은 준비 중입니다.');
+        }
+        
+        function showRisk() {
+            alert('리스크 체크 기능은 준비 중입니다.');
+        }
+        
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAgents();
+        });
+    </script>
+</body>
+</html>

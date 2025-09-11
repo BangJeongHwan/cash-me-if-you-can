@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>투자교육 AI 비서</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #000;
+            color: #fff;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #334155;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .btn {
+            background: #1e293b;
+            color: #fff;
+            border: 1px solid #475569;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            background: #334155;
+        }
+        
+        .btn-primary {
+            background: #10b981;
+            border-color: #10b981;
+        }
+        
+        .btn-primary:hover {
+            background: #059669;
+        }
+        
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .agent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .agent-card {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .agent-card:hover {
+            border-color: #10b981;
+            transform: translateY(-2px);
+        }
+        
+        .agent-card.selected {
+            border-color: #10b981;
+            background: #064e3b;
+        }
+        
+        .agent-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            color: #10b981;
+        }
+        
+        .agent-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .agent-summary {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        
+        .syllabus-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        
+        .tag {
+            background: #334155;
+            color: #e2e8f0;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .chat-container {
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 400px;
+            height: 100vh;
+            background: #0f172a;
+            border-left: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .chat-container.open {
+            transform: translateX(0);
+        }
+        
+        .chat-header {
+            padding: 20px;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 12px;
+            max-width: 80%;
+        }
+        
+        .message.user {
+            background: #064e3b;
+            margin-left: auto;
+            border: 1px solid #10b981;
+        }
+        
+        .message.assistant {
+            background: #1e293b;
+            border: 1px solid #334155;
+        }
+        
+        .chat-input {
+            padding: 20px;
+            border-top: 1px solid #334155;
+        }
+        
+        .chat-input textarea {
+            width: 100%;
+            padding: 12px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #fff;
+            resize: none;
+            height: 60px;
+        }
+        
+        .send-btn {
+            margin-top: 10px;
+            width: 100%;
+        }
+        
+        .memo-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .memo-item {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .memo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .memo-title {
+            font-weight: 600;
+            color: #10b981;
+        }
+        
+        .memo-date {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        
+        .memo-content {
+            color: #e2e8f0;
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+        
+        .memo-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+        }
+        
+        .memo-actions .btn {
+            font-size: 12px;
+            padding: 4px 8px;
+        }
+        
+        .topic-buttons {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .topic-btn {
+            background: #334155;
+            color: #e2e8f0;
+            border: 1px solid #475569;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .topic-btn:hover {
+            background: #475569;
+            border-color: #10b981;
+        }
+        
+        .modal-large {
+            max-width: 800px;
+            width: 95%;
+        }
+        
+        .question-card {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .question-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+        
+        .option-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .option-btn {
+            background: #334155;
+            color: #e2e8f0;
+            border: 1px solid #475569;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .option-btn:hover {
+            background: #475569;
+        }
+        
+        .option-btn.selected {
+            background: #10b981;
+            border-color: #10b981;
+            color: #fff;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #334155;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #10b981;
+            transition: width 0.3s ease;
+        }
+        
+        .scenario-card {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .scenario-title {
+            font-weight: 600;
+            color: #10b981;
+            margin-bottom: 8px;
+        }
+        
+        .scenario-news {
+            color: #94a3b8;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .decision-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .decision-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .decision-btn.buy {
+            background: #10b981;
+            color: #fff;
+            border: 1px solid #10b981;
+        }
+        
+        .decision-btn.hold {
+            background: #f59e0b;
+            color: #fff;
+            border: 1px solid #f59e0b;
+        }
+        
+        .decision-btn.sell {
+            background: #ef4444;
+            color: #fff;
+            border: 1px solid #ef4444;
+        }
+        
+        .decision-btn:hover {
+            opacity: 0.8;
+        }
+        
+        .result-card {
+            background: #064e3b;
+            border: 1px solid #10b981;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .result-title {
+            color: #10b981;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #334155;
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>투자교육 AI 비서</h1>
+            <div>
+                <button class="btn" onclick="openMemoModal()">📝 메모함</button>
+                <button class="btn" onclick="openAgentSelector()">🔄 Agent 선택</button>
+            </div>
+        </header>
+
+        <main>
+            <!-- 현재 선택된 Agent 표시 -->
+            <div class="card" id="currentAgent">
+                <h2>나의 현재 Agent</h2>
+                <div class="agent-card selected" id="selectedAgentCard">
+                    <div style="display: flex; align-items: center;">
+                        <span class="agent-icon">📚</span>
+                        <div>
+                            <div class="agent-name">스탠다드 버디</div>
+                            <div class="agent-summary">투자 입문자를 위한 기본 가이드</div>
+                        </div>
+                    </div>
+                    <div class="syllabus-tags">
+                        <span class="tag">주식/ETF 기초</span>
+                        <span class="tag">거래화면 튜토리얼</span>
+                        <span class="tag">리스크 기본</span>
+                    </div>
+                    <button class="btn btn-primary" style="margin-top: 15px;" onclick="openChat()">대화하기</button>
+                </div>
+            </div>
+
+            <!-- 데일리 코칭 섹션 -->
+            <div class="card">
+                <h2>데일리 코칭</h2>
+                <p style="color: #94a3b8; margin-bottom: 20px;">나의 학습과 투자를 돕는 맞춤 코칭 서비스</p>
+                
+                <div class="agent-grid">
+                    <div class="card" onclick="showReport()">
+                        <h3>📋 오늘의 3줄 리포트</h3>
+                        <p style="color: #94a3b8;">시장 인사이트와 학습을 쉽게 요약해 드려요.</p>
+                        <button class="btn" style="margin-top: 10px;">실행</button>
+                    </div>
+                    
+                    <div class="card" onclick="showPractice()">
+                        <h3>🎮 실습: 뉴스 기반 의사결정</h3>
+                        <p style="color: #94a3b8;">시나리오별 가상 매수/매도</p>
+                        <button class="btn" style="margin-top: 10px;">실행</button>
+                    </div>
+                    
+                    <div class="card" onclick="showRisk()">
+                        <h3>🛡️ 리스크 체크</h3>
+                        <p style="color: #94a3b8;">변동성·드로다운 체감</p>
+                        <button class="btn" style="margin-top: 10px;">실행</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <!-- Agent 선택 모달 -->
+    <div id="agentModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Agent 선택</h2>
+                <button class="close-btn" onclick="closeAgentModal()">&times;</button>
+            </div>
+            <div class="agent-grid">
+                <div class="agent-card" onclick="selectAgent('standard')">
+                    <div style="display: flex; align-items: center;">
+                        <span class="agent-icon">📚</span>
+                        <div>
+                            <div class="agent-name">스탠다드 버디</div>
+                            <div class="agent-summary">투자 입문자를 위한 기본 가이드</div>
+                        </div>
+                    </div>
+                    <div class="syllabus-tags">
+                        <span class="tag">주식/ETF 기초</span>
+                        <span class="tag">거래화면 튜토리얼</span>
+                        <span class="tag">리스크 기본</span>
+                    </div>
+                </div>
+                
+                <div class="agent-card" onclick="selectAgent('growth')">
+                    <div style="display: flex; align-items: center;">
+                        <span class="agent-icon">🚀</span>
+                        <div>
+                            <div class="agent-name">불꽃 호랑이</div>
+                            <div class="agent-summary">뜨거운 성장주에 올인하는 모험가형</div>
+                        </div>
+                    </div>
+                    <div class="syllabus-tags">
+                        <span class="tag">성장주 찾기</span>
+                        <span class="tag">실적 모멘텀</span>
+                        <span class="tag">섹터 순환</span>
+                    </div>
+                </div>
+                
+                <div class="agent-card" onclick="selectAgent('dividend')">
+                    <div style="display: flex; align-items: center;">
+                        <span class="agent-icon">🛡️</span>
+                        <div>
+                            <div class="agent-name">든든 올빼미</div>
+                            <div class="agent-summary">배당으로 매달 용돈 받는 안정형</div>
+                        </div>
+                    </div>
+                    <div class="syllabus-tags">
+                        <span class="tag">배당 일정</span>
+                        <span class="tag">꾸준한 기업</span>
+                        <span class="tag">금리 체크</span>
+                    </div>
+                </div>
+                
+                <div class="agent-card" onclick="selectAgent('index')">
+                    <div style="display: flex; align-items: center;">
+                        <span class="agent-icon">📈</span>
+                        <div>
+                            <div class="agent-name">거북이 플랜</div>
+                            <div class="agent-summary">ETF 적립으로 느긋하게 장기투자</div>
+                        </div>
+                    </div>
+                    <div class="syllabus-tags">
+                        <span class="tag">ETF 기본</span>
+                        <span class="tag">리밸런싱</span>
+                        <span class="tag">분산투자</span>
+                    </div>
+                </div>
+                
+                <div class="agent-card" onclick="selectAgent('value')">
+                    <div style="display: flex; align-items: center;">
+                        <span class="agent-icon">📊</span>
+                        <div>
+                            <div class="agent-name">가치 여우</div>
+                            <div class="agent-summary">숨은 보석 찾아 모으는 저평가 헌터</div>
+                        </div>
+                    </div>
+                    <div class="syllabus-tags">
+                        <span class="tag">PER/PB 보기</span>
+                        <span class="tag">안전마진</span>
+                        <span class="tag">경기 사이클</span>
+                    </div>
+                </div>
+                
+                <div class="agent-card" onclick="selectAgent('quant')">
+                    <div style="display: flex; align-items: center;">
+                        <span class="agent-icon">✨</span>
+                        <div>
+                            <div class="agent-name">룰 기반 까마귀</div>
+                            <div class="agent-summary">데이터와 규칙으로만 판단하는 이성형</div>
+                        </div>
+                    </div>
+                    <div class="syllabus-tags">
+                        <span class="tag">팩터 투자</span>
+                        <span class="tag">백테스트</span>
+                        <span class="tag">비중 조정</span>
+                    </div>
+                </div>
+                
+                <div class="agent-card" onclick="selectAgent('esg')">
+                    <div style="display: flex; align-items: center;">
+                        <span class="agent-icon">✨</span>
+                        <div>
+                            <div class="agent-name">초록 사슴</div>
+                            <div class="agent-summary">환경·사회도 챙기는 착한 투자</div>
+                        </div>
+                    </div>
+                    <div class="syllabus-tags">
+                        <span class="tag">ESG 지표</span>
+                        <span class="tag">임팩트</span>
+                        <span class="tag">그린워싱 체크</span>
+                    </div>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn btn-primary" onclick="openMBTI()">🧭 MBTI 추천</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MBTI 모달 -->
+    <div id="mbtiModal" class="modal hidden">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>🧭 투자 MBTI (10문항)</h2>
+                <button class="close-btn" onclick="closeMBTIModal()">&times;</button>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="mbtiProgress" style="width: 0%"></div>
+            </div>
+            <div id="mbtiQuestions">
+                <!-- MBTI 질문들이 여기에 동적으로 생성됩니다 -->
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn" onclick="resetMBTI()">초기화</button>
+                <button class="btn btn-primary" id="mbtiSubmitBtn" onclick="submitMBTI()" disabled>결과 반영</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 실습 모달 -->
+    <div id="practiceModal" class="modal hidden">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>🎮 실습: 뉴스 기반 의사결정</h2>
+                <button class="close-btn" onclick="closePracticeModal()">&times;</button>
+            </div>
+            <div id="practiceContent">
+                <!-- 실습 내용이 여기에 동적으로 생성됩니다 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 리스크 체크 모달 -->
+    <div id="riskModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🛡️ 리스크 체크</h2>
+                <button class="close-btn" onclick="closeRiskModal()">&times;</button>
+            </div>
+            <div id="riskContent">
+                <div class="card">
+                    <h3>포트폴리오 리스크 분석</h3>
+                    <p style="color: #94a3b8; margin-bottom: 15px;">현재 선택된 Agent: <span id="riskAgentName">스탠다드 버디</span></p>
+                    
+                    <div class="scenario-card">
+                        <div class="scenario-title">📊 변동성 체크</div>
+                        <div class="scenario-news">
+                            • 일일 변동성: ±2.5% (보통 수준)<br>
+                            • 주간 변동성: ±8.3% (안정적)<br>
+                            • 월간 변동성: ±15.2% (적정 수준)
+                        </div>
+                    </div>
+                    
+                    <div class="scenario-card">
+                        <div class="scenario-title">📉 드로다운 시뮬레이션</div>
+                        <div class="scenario-news">
+                            • 최대 드로다운: -12.5% (지난 3개월)<br>
+                            • 회복 기간: 평균 15일<br>
+                            • 손실 확률: 5% (월간)
+                        </div>
+                    </div>
+                    
+                    <div class="scenario-card">
+                        <div class="scenario-title">⚖️ 리스크 대비 수익률</div>
+                        <div class="scenario-news">
+                            • 샤프 비율: 1.2 (양호)<br>
+                            • 베타: 0.8 (시장 대비 안정적)<br>
+                            • 변동성 대비 수익률: 우수
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="btn btn-primary" onclick="saveRiskMemo()">리포트 저장</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 메모 모달 -->
+<!--      
+    <div id="memoModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📝 학습 메모함</h2>
+                <button class="close-btn" onclick="closeMemoModal()">&times;</button>
+            </div>
+            <div class="memo-list" id="memoList">
+                <p style="color: #94a3b8; text-align: center;">아직 저장된 메모가 없어요.</p>
+            </div>
+        </div>
+    </div> -->
+
+    <!-- 채팅 패널 -->
+    <div id="chatPanel" class="chat-container">
+        <div class="chat-header">
+            <h3 id="chatAgentName">스탠다드 버디</h3>
+            <button class="close-btn" onclick="closeChat()">&times;</button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message assistant">
+                <div style="font-size: 12px; opacity: 0.6; margin-bottom: 5px;">AI</div>
+                <div>안녕하세요! 스탠다드 버디 에이전트 모드로 대화를 시작할게요. 먼저 주제를 골라볼까요?</div>
+            </div>
+        </div>
+        <div class="topic-buttons" id="topicButtons">
+            <button class="topic-btn" onclick="sendTopicMessage('오늘의 3줄 리포트')">오늘의 3줄 리포트</button>
+            <button class="topic-btn" onclick="sendTopicMessage('섹터 로테이션')">섹터 로테이션</button>
+            <button class="topic-btn" onclick="sendTopicMessage('리스크 체크')">리스크 체크</button>
+            <button class="topic-btn" onclick="sendTopicMessage('뉴스 요약')">뉴스 요약</button>
+            <button class="topic-btn" onclick="sendTopicMessage('실전 학습 시나리오')">실전 학습 시나리오</button>
+        </div>
+        <div class="chat-input">
+            <textarea id="chatInput" placeholder="메시지를 입력하세요..."></textarea>
+            <button class="btn btn-primary send-btn" onclick="sendMessage()">보내기</button>
+        </div>
+    </div>
+    <script>
+        // 전역 변수
+        let currentAgent = 'standard';
+        let memos = JSON.parse(localStorage.getItem('learnMemosV1') || '[]');
+        
+        // Agent 데이터
+        const agents = {
+            standard: {
+                name: '스탠다드 버디',
+                summary: '투자 입문자를 위한 기본 가이드',
+                icon: '📚',
+                syllabus: ['주식/ETF 기초', '거래화면 튜토리얼', '리스크 기본']
+            },
+            growth: {
+                name: '불꽃 호랑이',
+                summary: '뜨거운 성장주에 올인하는 모험가형',
+                icon: '🚀',
+                syllabus: ['성장주 찾기', '실적 모멘텀', '섹터 순환']
+            },
+            dividend: {
+                name: '든든 올빼미',
+                summary: '배당으로 매달 용돈 받는 안정형',
+                icon: '🛡️',
+                syllabus: ['배당 일정', '꾸준한 기업', '금리 체크']
+            },
+            index: {
+                name: '거북이 플랜',
+                summary: 'ETF 적립으로 느긋하게 장기투자',
+                icon: '📈',
+                syllabus: ['ETF 기본', '리밸런싱', '분산투자']
+            },
+            value: {
+                name: '가치 여우',
+                summary: '숨은 보석 찾아 모으는 저평가 헌터',
+                icon: '📊',
+                syllabus: ['PER/PB 보기', '안전마진', '경기 사이클']
+            },
+            quant: {
+                name: '룰 기반 까마귀',
+                summary: '데이터와 규칙으로만 판단하는 이성형',
+                icon: '✨',
+                syllabus: ['팩터 투자', '백테스트', '비중 조정']
+            },
+            esg: {
+                name: '초록 사슴',
+                summary: '환경·사회도 챙기는 착한 투자',
+                icon: '✨',
+                syllabus: ['ESG 지표', '임팩트', '그린워싱 체크']
+            }
+        };
+
+        // Agent 선택
+        function selectAgent(agentId) {
+            currentAgent = agentId;
+            updateCurrentAgent();
+            closeAgentModal();
+        }
+
+        // 현재 Agent 업데이트
+        function updateCurrentAgent() {
+            const agent = agents[currentAgent];
+            const card = document.getElementById('selectedAgentCard');
+            
+            card.innerHTML = `
+                <div style="display: flex; align-items: center;">
+                    <span class="agent-icon">${agent.icon}</span>
+                    <div>
+                        <div class="agent-name">${agent.name}</div>
+                        <div class="agent-summary">${agent.summary}</div>
+                    </div>
+                </div>
+                <div class="syllabus-tags">
+                    ${agent.syllabus.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                </div>
+                <button class="btn btn-primary" style="margin-top: 15px;" onclick="openChat()">대화하기</button>
+            `;
+            
+            // 채팅 Agent 이름도 업데이트
+            document.getElementById('chatAgentName').textContent = agent.name;
+        }
+
+        // 모달 열기/닫기
+        function openAgentSelector() {
+            document.getElementById('agentModal').classList.remove('hidden');
+        }
+
+        function closeAgentModal() {
+            document.getElementById('agentModal').classList.add('hidden');
+        }
+
+        function openMemoModal() {
+            loadMemos();
+            document.getElementById('memoModal').classList.remove('hidden');
+        }
+
+        function closeMemoModal() {
+            document.getElementById('memoModal').classList.add('hidden');
+        }
+
+        // 채팅 열기/닫기
+        function openChat() {
+            document.getElementById('chatPanel').classList.add('open');
+        }
+
+        function closeChat() {
+            document.getElementById('chatPanel').classList.remove('open');
+        }
+
+        // 메시지 전송
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            const messagesContainer = document.getElementById('chatMessages');
+            
+            // 사용자 메시지 추가
+            const userMessage = document.createElement('div');
+            userMessage.className = 'message user';
+            userMessage.innerHTML = `
+                <div style="font-size: 12px; opacity: 0.6; margin-bottom: 5px;">나</div>
+                <div>${message}</div>
+            `;
+            messagesContainer.appendChild(userMessage);
+            
+            // AI 응답 추가 (데모)
+            setTimeout(() => {
+                const aiMessage = document.createElement('div');
+                aiMessage.className = 'message assistant';
+                aiMessage.innerHTML = `
+                    <div style="font-size: 12px; opacity: 0.6; margin-bottom: 5px;">AI</div>
+                    <div>(데모) 메시지를 받았어요. 실제 모델 연동 전까지는 미리보기 응답을 보여줘요.</div>
+                `;
+                messagesContainer.appendChild(aiMessage);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 500);
+            
+            input.value = '';
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // 엔터키로 메시지 전송
+        document.getElementById('chatInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // 메모 관련 함수들
+        function loadMemos() {
+            const memoList = document.getElementById('memoList');
+            
+            if (memos.length === 0) {
+                memoList.innerHTML = '<p style="color: #94a3b8; text-align: center;">아직 저장된 메모가 없어요.</p>';
+                return;
+            }
+            
+            memoList.innerHTML = memos.map(memo => `
+                <div class="memo-item">
+                    <div class="memo-header">
+                        <div class="memo-title">${memo.title}</div>
+                        <div class="memo-date">${memo.dateStr}</div>
+                    </div>
+                    <div class="memo-content">${memo.content}</div>
+                    <div class="memo-actions">
+                        <button class="btn" onclick="deleteMemo('${memo.id}')">🗑️ 삭제</button>
+                        <button class="btn" onclick="syncMemo('${memo.id}')" ${memo.synced ? 'disabled' : ''}>
+                            ${memo.synced ? '✅ 동기화 완료' : '☁️ 서버 동기화'}
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function saveMemo(title, content) {
+            const memo = {
+                id: Date.now() + Math.random().toString(16).slice(2),
+                agent: currentAgent,
+                title: title,
+                content: content,
+                dateStr: new Date().toLocaleDateString('ko-KR', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric', 
+                    weekday: 'short' 
+                }),
+                createdAt: Date.now()
+            };
+            
+            memos.unshift(memo);
+            localStorage.setItem('learnMemosV1', JSON.stringify(memos));
+        }
+
+        // 코칭 기능들
+        function showReport() {
+            const agent = agents[currentAgent];
+            const reportContent = generateReport(agent);
+            
+            if (confirm('3줄 리포트를 생성하고 메모로 저장하시겠습니까?')) {
+                saveMemo(`3줄 리포트 - ${agent.name}`, reportContent);
+                alert('리포트가 메모로 저장되었습니다!');
+            }
+        }
+
+        function showPractice() {
+            openPracticeModal();
+        }
+
+        function showRisk() {
+            openRiskModal();
+        }
+
+        function openMBTI() {
+            openMBTIModal();
+        }
+
+        // 리포트 생성
+        function generateReport(agent) {
+            const reports = {
+                standard: [
+                    '📈 오늘의 주요 지수 한눈에 - 코스피/나스닥/달러지수 등 시장 온도체크',
+                    '📚 ETF/주식 기초 퀵 학습 - 용어 1개만 쏙! (PER·ETF·분산)',
+                    '🛡️ 리스크 관리 기본 팁 - 목표비중/손절 기준 미리 정하기'
+                ],
+                growth: [
+                    '🔥 핫 섹터 Top3 - 반도체·AI·2차전지 등 단기 모멘텀',
+                    '📅 실적/신제품 캘린더 - 이번 주 핵심 이벤트만 쏙 정리',
+                    '⚡ 모멘텀 아이디어 - 단계적 진입·분할 매수 가이드'
+                ],
+                dividend: [
+                    '💰 이번 주 배당 일정 - 배당락/지급일 한눈에',
+                    '📊 배당수익률 vs 금리 - 채권 금리와 비교해 매력도 점검',
+                    '🏗️ 보수적 액션 제안 - 현금흐름 안정·분산 유지'
+                ],
+                index: [
+                    '🧭 지수/ETF 스냅샷 - 일간·주간 성과 요약',
+                    '🔄 리밸런싱 신호 - 규칙 기반 체크리스트',
+                    '🐢 장기 분산 제안 - 적립/분할매수 권장'
+                ],
+                value: [
+                    '💎 저평가 Top3 - 밸류 갭 큰 업종/종목',
+                    '📉 PER/PB & 안전마진 - 재무 vs 가격 괴리 체크',
+                    '🦊 장기 보유 전략 - 가치 훼손 없으면 버티기'
+                ],
+                quant: [
+                    '📐 팩터 성과 스냅샷 - 가치·모멘텀·퀄리티 등',
+                    '📊 룰 신호 - 진입/청산 트리거 체크',
+                    '⚖️ 리스크 파리티 - 변동성 타겟팅으로 비중 조정'
+                ],
+                esg: [
+                    '🌱 ESG 뉴스 Top3 - 환경·사회·지배구조 이슈',
+                    '🔋 임팩트 ETF 흐름 - 그린/클린 에너지 ETF',
+                    '🦌 ESG 점수 체크 - 포트폴리오 지속가능성 점검'
+                ]
+            };
+            
+            return reports[agent.id] ? reports[agent.id].join('\n') : reports.standard.join('\n');
+        }
+
+        // 토픽 메시지 전송
+        function sendTopicMessage(topic) {
+            const messagesContainer = document.getElementById('chatMessages');
+            
+            // 사용자 메시지 추가
+            const userMessage = document.createElement('div');
+            userMessage.className = 'message user';
+            userMessage.innerHTML = `
+                <div style="font-size: 12px; opacity: 0.6; margin-bottom: 5px;">나</div>
+                <div>${topic}에 대해 알려주세요</div>
+            `;
+            messagesContainer.appendChild(userMessage);
+            
+            // AI 응답 추가
+            setTimeout(() => {
+                const aiMessage = document.createElement('div');
+                aiMessage.className = 'message assistant';
+                const response = getTopicResponse(topic);
+                aiMessage.innerHTML = `
+                    <div style="font-size: 12px; opacity: 0.6; margin-bottom: 5px;">AI</div>
+                    <div>${response}</div>
+                `;
+                messagesContainer.appendChild(aiMessage);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 500);
+            
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // 토픽별 응답 생성
+        function getTopicResponse(topic) {
+            const agent = agents[currentAgent];
+            const responses = {
+                '오늘의 3줄 리포트': `오늘의 3줄 리포트를 ${agent.name} 관점에서 정리해드릴게요:\n\n${generateReport(agent)}`,
+                '섹터 로테이션': `${agent.name} 관점에서 현재 섹터 로테이션을 분석해보면, ${agent.syllabus[0]}에 집중하는 것이 좋겠어요.`,
+                '리스크 체크': `${agent.name}의 리스크 관리 전략은 ${agent.syllabus[2]}에 기반합니다. 현재 시장 상황을 고려한 리스크 체크를 진행해보세요.`,
+                '뉴스 요약': `최근 투자 관련 뉴스를 ${agent.name} 관점에서 요약해드리면, ${agent.summary}에 맞는 뉴스들이 주목받고 있어요.`,
+                '실전 학습 시나리오': `${agent.name}와 함께하는 실전 시나리오를 준비했어요. ${agent.syllabus[1]}에 대한 실제 사례를 통해 학습해보세요.`
+            };
+            return responses[topic] || '해당 주제에 대한 정보를 준비 중입니다.';
+        }
+
+        // MBTI 관련 함수들
+        let mbtiAnswers = [];
+        const mbtiQuestions = [
+            {
+                id: "risk",
+                q: "단기 변동성을 감수하더라도 높은 수익을 노린다.",
+                options: [
+                    { label: "매우 그렇다", scores: { growth: 3, quant: 2 } },
+                    { label: "보통", scores: { growth: 1, value: 1, index: 1 } },
+                    { label: "아니다", scores: { dividend: 2, index: 2 } }
+                ]
+            },
+            {
+                id: "horizon",
+                q: "나의 투자 기간은?",
+                options: [
+                    { label: "1~3년", scores: { growth: 1, value: 1 } },
+                    { label: "3~7년", scores: { index: 2, value: 1 } },
+                    { label: "7년+", scores: { index: 3, dividend: 1 } }
+                ]
+            },
+            {
+                id: "rule",
+                q: "룰 기반(정량) 전략에 매력을 느낀다.",
+                options: [
+                    { label: "매우 그렇다", scores: { quant: 3, index: 1 } },
+                    { label: "보통", scores: { quant: 1, value: 1 } },
+                    { label: "아니다", scores: { growth: 1, dividend: 1 } }
+                ]
+            },
+            {
+                id: "income",
+                q: "정기적인 현금흐름(배당/이자)이 중요하다.",
+                options: [
+                    { label: "매우 중요", scores: { dividend: 3, value: 1 } },
+                    { label: "있으면 좋음", scores: { dividend: 1, index: 1 } },
+                    { label: "상관없음", scores: { growth: 1, quant: 1 } }
+                ]
+            },
+            {
+                id: "esg",
+                q: "지속가능성/임팩트도 의사결정에 반영한다.",
+                options: [
+                    { label: "항상", scores: { esg: 3, value: 1 } },
+                    { label: "상황에 따라", scores: { esg: 1, index: 1 } },
+                    { label: "거의 안 함", scores: { growth: 1, quant: 1 } }
+                ]
+            },
+            {
+                id: "valuegrowth",
+                q: "저평가 종목을 느리게 모으는 편이다 vs 성장 스토리에 베팅한다.",
+                options: [
+                    { label: "저평가 선호", scores: { value: 3, dividend: 1 } },
+                    { label: "둘 다", scores: { value: 1, growth: 1, index: 1 } },
+                    { label: "성장 베팅", scores: { growth: 3 } }
+                ]
+            },
+            {
+                id: "diversify",
+                q: "분산투자와 저비용을 최우선으로 둔다.",
+                options: [
+                    { label: "그렇다", scores: { index: 3, esg: 1 } },
+                    { label: "보통", scores: { index: 1, value: 1 } },
+                    { label: "아니다", scores: { growth: 1, quant: 1 } }
+                ]
+            },
+            {
+                id: "vol",
+                q: "일일 변동성(±3% 내외)에 스트레스를 받는다.",
+                options: [
+                    { label: "매우 받는다", scores: { dividend: 2, index: 2 } },
+                    { label: "보통", scores: { value: 1, index: 1 } },
+                    { label: "거의 없음", scores: { growth: 2, quant: 1 } }
+                ]
+            },
+            {
+                id: "drawdown",
+                q: "-20% 드로다운을 경험하면?",
+                options: [
+                    { label: "규칙대로 리밸런싱", scores: { index: 2, quant: 1 } },
+                    { label: "저가매수(가치점검)", scores: { value: 2 } },
+                    { label: "리스크 축소/현금", scores: { dividend: 2 } }
+                ]
+            },
+            {
+                id: "activity",
+                q: "거래 빈도 선호는?",
+                options: [
+                    { label: "낮음(월 1~2회)", scores: { index: 2, dividend: 1 } },
+                    { label: "중간(주 1회)", scores: { value: 1, esg: 1 } },
+                    { label: "높음(주 2회+)", scores: { growth: 2, quant: 2 } }
+                ]
+            }
+        ];
+
+        function openMBTIModal() {
+            mbtiAnswers = new Array(mbtiQuestions.length).fill(-1);
+            renderMBTIQuestions();
+            updateMBTIProgress();
+            document.getElementById('mbtiModal').classList.remove('hidden');
+        }
+
+        function closeMBTIModal() {
+            document.getElementById('mbtiModal').classList.add('hidden');
+        }
+
+        function renderMBTIQuestions() {
+            const container = document.getElementById('mbtiQuestions');
+            container.innerHTML = mbtiQuestions.map((q, index) => `
+                <div class="question-card">
+                    <div class="question-title">${index + 1}. ${q.q}</div>
+                    <div class="option-buttons">
+                        ${q.options.map((option, optIndex) => `
+                            <button class="option-btn ${mbtiAnswers[index] === optIndex ? 'selected' : ''}" 
+                                    onclick="selectMBTIOption(${index}, ${optIndex})">
+                                ${option.label}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectMBTIOption(questionIndex, optionIndex) {
+            mbtiAnswers[questionIndex] = optionIndex;
+            renderMBTIQuestions();
+            updateMBTIProgress();
+        }
+
+        function updateMBTIProgress() {
+            const answered = mbtiAnswers.filter(a => a >= 0).length;
+            const progress = (answered / mbtiQuestions.length) * 100;
+            document.getElementById('mbtiProgress').style.width = progress + '%';
+            document.getElementById('mbtiSubmitBtn').disabled = answered < mbtiQuestions.length;
+        }
+
+        function resetMBTI() {
+            mbtiAnswers = new Array(mbtiQuestions.length).fill(-1);
+            renderMBTIQuestions();
+            updateMBTIProgress();
+        }
+
+        function submitMBTI() {
+            const scores = { growth: 0, dividend: 0, index: 0, value: 0, quant: 0, esg: 0 };
+            
+            mbtiAnswers.forEach((answer, questionIndex) => {
+                if (answer >= 0) {
+                    const option = mbtiQuestions[questionIndex].options[answer];
+                    Object.entries(option.scores).forEach(([key, value]) => {
+                        scores[key] += value;
+                    });
+                }
+            });
+
+            const total = Object.values(scores).reduce((acc, v) => acc + v, 0) || 1;
+            const normalized = Object.fromEntries(
+                Object.entries(scores).map(([k, v]) => [k, Number(((v / total) * 100).toFixed(1))])
+            );
+            
+            const ranked = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+            const topAgent = ranked[0][0];
+            
+            selectAgent(topAgent);
+            closeMBTIModal();
+            
+            alert(`MBTI 분석 결과: ${agents[topAgent].name} (${normalized[topAgent]}% 적합도)`);
+        }
+
+        // 실습 모달 관련 함수들
+        function openPracticeModal() {
+            const agent = agents[currentAgent];
+            const scenarios = {
+                standard: {
+                    title: "지수 급락 후 반등 초입?",
+                    date: "2024-06-12",
+                    symbol: "ETF-ALL",
+                    news: [
+                        "전일 변동성 확대, 파월 발언으로 안도 랠리 조짐",
+                        "원/달러 보합권, 반도체 강세",
+                        "ETF 분할매수 논의 증가"
+                    ]
+                },
+                growth: {
+                    title: "신제품 런칭 기대감 확대",
+                    date: "2024-07-03",
+                    symbol: "AI-CHIP",
+                    news: [
+                        "주요 업체, 차세대 AI 가속기 공개",
+                        "수주 가시성 상향 리포트 다수",
+                        "밸류에이션 부담 논쟁 지속"
+                    ]
+                },
+                dividend: {
+                    title: "배당 공시 앞두고 관심 증가",
+                    date: "2024-09-18",
+                    symbol: "DIV-KOR",
+                    news: [
+                        "현금흐름 안정 기업 배당 성장 전망",
+                        "배당락 전후 전략 기사 다수",
+                        "금리 하락 기대감"
+                    ]
+                }
+            };
+
+            const scenario = scenarios[currentAgent] || scenarios.standard;
+            
+            document.getElementById('practiceContent').innerHTML = `
+                <div class="card">
+                    <h3>시나리오 실습(과거) · ${agent.name}</h3>
+                    <p style="color: #94a3b8; margin-bottom: 15px;">기준일 ${scenario.date} · 현재 선택: <b>${scenario.symbol}</b></p>
+                    
+                    <div class="scenario-card">
+                        <div class="scenario-title">${scenario.title}</div>
+                        <div class="scenario-news">
+                            ${scenario.news.map(n => `• ${n}`).join('<br>')}
+                        </div>
+                    </div>
+                    
+                    <div class="scenario-card">
+                        <div class="scenario-title">가격 경로 (샘플)</div>
+                        <div class="scenario-news">
+                            100.00 → 98.50 → 101.20 → 99.80 → 102.50 → 100.90 → 103.20 → 101.80 ...
+                        </div>
+                    </div>
+                    
+                    <div class="scenario-card">
+                        <div class="scenario-title">의사결정</div>
+                        <div class="scenario-news">가상 매수/매도 또는 관망을 선택하세요.</div>
+                        <div class="decision-buttons">
+                            <button class="decision-btn buy" onclick="makeDecision('buy', '${scenario.symbol}')">가상 매수</button>
+                            <button class="decision-btn hold" onclick="makeDecision('hold', '${scenario.symbol}')">관망</button>
+                            <button class="decision-btn sell" onclick="makeDecision('sell', '${scenario.symbol}')">가상 매도</button>
+                        </div>
+                    </div>
+                    
+                    <div id="practiceResult" style="display: none;">
+                        <!-- 결과가 여기에 표시됩니다 -->
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('practiceModal').classList.remove('hidden');
+        }
+
+        function closePracticeModal() {
+            document.getElementById('practiceModal').classList.add('hidden');
+        }
+
+        function makeDecision(decision, symbol) {
+            const results = {
+                buy: { pnl5: 2.3, pnl20: 4.7, mdd: -1.2 },
+                hold: { pnl5: 0.0, pnl20: 0.0, mdd: 0.0 },
+                sell: { pnl5: -2.1, pnl20: -4.3, mdd: 0.0 }
+            };
+            
+            const result = results[decision];
+            
+            document.getElementById('practiceResult').innerHTML = `
+                <div class="result-card">
+                    <div class="result-title">결과 피드백</div>
+                    <div class="result-item">
+                        <span>내 결정:</span>
+                        <span><b>${decision.toUpperCase()}</b></span>
+                    </div>
+                    <div class="result-item">
+                        <span>5일 수익률:</span>
+                        <span><b>${result.pnl5}%</b></span>
+                    </div>
+                    <div class="result-item">
+                        <span>20일 수익률:</span>
+                        <span><b>${result.pnl20}%</b></span>
+                    </div>
+                    <div class="result-item">
+                        <span>최대 낙폭:</span>
+                        <span><b>${result.mdd}%</b></span>
+                    </div>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <button class="btn btn-primary" onclick="savePracticeMemo('${decision}', '${symbol}', ${result.pnl5}, ${result.pnl20}, ${result.mdd})">학습 메모 저장</button>
+                        <button class="btn" onclick="resetPractice()">다시 해보기</button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('practiceResult').style.display = 'block';
+        }
+
+        function savePracticeMemo(decision, symbol, pnl5, pnl20, mdd) {
+            const agent = agents[currentAgent];
+            const content = `실습(과거) · 결정: ${decision.toUpperCase()}\n5일 수익률: ${pnl5}% · 20일 수익률: ${pnl20}%\n최대 낙폭: ${mdd}%\n대상: ${symbol}\n시나리오: ${agent.name}`;
+            
+            saveMemo(`실습 결과 - ${agent.name} (${symbol})`, content);
+            alert('실습 결과가 메모로 저장되었습니다!');
+        }
+
+        function resetPractice() {
+            document.getElementById('practiceResult').style.display = 'none';
+        }
+
+        // 리스크 체크 모달 관련 함수들
+        function openRiskModal() {
+            document.getElementById('riskAgentName').textContent = agents[currentAgent].name;
+            document.getElementById('riskModal').classList.remove('hidden');
+        }
+
+        function closeRiskModal() {
+            document.getElementById('riskModal').classList.add('hidden');
+        }
+
+        function saveRiskMemo() {
+            const agent = agents[currentAgent];
+            const content = `리스크 체크 리포트\n\n📊 변동성 체크\n• 일일 변동성: ±2.5% (보통 수준)\n• 주간 변동성: ±8.3% (안정적)\n• 월간 변동성: ±15.2% (적정 수준)\n\n📉 드로다운 시뮬레이션\n• 최대 드로다운: -12.5% (지난 3개월)\n• 회복 기간: 평균 15일\n• 손실 확률: 5% (월간)\n\n⚖️ 리스크 대비 수익률\n• 샤프 비율: 1.2 (양호)\n• 베타: 0.8 (시장 대비 안정적)\n• 변동성 대비 수익률: 우수`;
+            
+            saveMemo(`리스크 체크 - ${agent.name}`, content);
+            alert('리스크 체크 리포트가 메모로 저장되었습니다!');
+        }
+
+        // 메모 삭제 기능 추가
+        function deleteMemo(memoId) {
+            if (confirm('이 메모를 삭제하시겠습니까?')) {
+                memos = memos.filter(m => m.id !== memoId);
+                localStorage.setItem('learnMemosV1', JSON.stringify(memos));
+                loadMemos();
+            }
+        }
+
+        // 메모 동기화 기능 (데모)
+        function syncMemo(memoId) {
+            const memo = memos.find(m => m.id === memoId);
+            if (memo) {
+                memo.synced = true;
+                localStorage.setItem('learnMemosV1', JSON.stringify(memos));
+                loadMemos();
+                alert('메모가 서버에 동기화되었습니다!');
+            }
+        }
+
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCurrentAgent();
+        });
+    </script>
+</body>
+</html>

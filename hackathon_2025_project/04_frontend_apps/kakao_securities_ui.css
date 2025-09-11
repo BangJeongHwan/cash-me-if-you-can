@@ -1,0 +1,745 @@
+/* 카카오페이증권 스타일 UI */
+/* 카카오페이증권의 특징적인 디자인 요소를 반영한 CSS */
+
+:root {
+  /* 카카오페이증권 컬러 팔레트 */
+  --kakao-yellow: #FEE500;
+  --kakao-black: #3C1E1E;
+  --kakao-gray-100: #F2F3F5;
+  --kakao-gray-200: #E5E8EB;
+  --kakao-gray-300: #D1D5D9;
+  --kakao-gray-400: #9EA4AA;
+  --kakao-gray-500: #6B7684;
+  --kakao-gray-600: #4E5968;
+  --kakao-gray-700: #333D4B;
+  --kakao-gray-800: #191F28;
+  --kakao-gray-900: #0B1014;
+  
+  /* 증권 앱 특화 컬러 */
+  --profit-red: #FF3B30;
+  --profit-blue: #007AFF;
+  --profit-green: #34C759;
+  --profit-orange: #FF9500;
+  
+  /* 그라데이션 */
+  --gradient-primary: linear-gradient(135deg, #FEE500 0%, #FFD700 100%);
+  --gradient-card: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+  --gradient-dark: linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%);
+  
+  /* 그림자 */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  /* 둥근 모서리 */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  
+  /* 폰트 */
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+}
+
+/* 기본 스타일 리셋 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--kakao-gray-100);
+  color: var(--kakao-gray-800);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 카카오페이증권 스타일 컨테이너 */
+.securities-app {
+  min-height: 100vh;
+  background: linear-gradient(180deg, var(--kakao-gray-100) 0%, var(--kakao-gray-200) 100%);
+}
+
+/* 헤더 스타일 */
+.securities-header {
+  background: var(--gradient-primary);
+  padding: 16px 20px;
+  box-shadow: var(--shadow-md);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.securities-header h1 {
+  color: var(--kakao-black);
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+  margin: 0;
+}
+
+/* 탭 네비게이션 */
+.tab-navigation {
+  display: flex;
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 4px;
+  margin: 16px 20px;
+  box-shadow: var(--shadow-card);
+  overflow-x: auto;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  color: var(--kakao-gray-500);
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  min-width: 80px;
+}
+
+.tab-button:hover {
+  background: var(--kakao-gray-100);
+  color: var(--kakao-gray-700);
+}
+
+.tab-button.active {
+  background: var(--gradient-primary);
+  color: var(--kakao-black);
+  box-shadow: var(--shadow-sm);
+}
+
+/* 카드 스타일 */
+.securities-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin: 16px 20px;
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--kakao-gray-200);
+  transition: all 0.2s ease;
+}
+
+.securities-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.securities-card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.securities-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--kakao-gray-800);
+  margin: 0;
+}
+
+.securities-card-subtitle {
+  font-size: 14px;
+  color: var(--kakao-gray-500);
+  margin: 4px 0 0 0;
+}
+
+/* MBTI 추천 카드 특별 스타일 */
+.mbti-recommendation-card {
+  background: var(--gradient-card);
+  border: 2px solid var(--kakao-yellow);
+  position: relative;
+  overflow: hidden;
+}
+
+.mbti-recommendation-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--gradient-primary);
+}
+
+.mbti-type {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.mbti-type h4 {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--kakao-black);
+  margin-bottom: 8px;
+}
+
+.mbti-type p {
+  font-size: 16px;
+  color: var(--kakao-gray-600);
+  margin-bottom: 16px;
+}
+
+.confidence {
+  display: inline-block;
+  background: var(--gradient-primary);
+  color: var(--kakao-black);
+  padding: 8px 16px;
+  border-radius: var(--radius-xl);
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+}
+
+/* 사용자 정보 카드 */
+.user-info-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin: 16px 20px;
+  box-shadow: var(--shadow-card);
+  border-left: 4px solid var(--kakao-yellow);
+}
+
+.user-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.user-info-item {
+  text-align: center;
+  padding: 12px;
+  background: var(--kakao-gray-100);
+  border-radius: var(--radius-md);
+}
+
+.user-info-label {
+  font-size: 12px;
+  color: var(--kakao-gray-500);
+  margin-bottom: 4px;
+}
+
+.user-info-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--kakao-gray-800);
+}
+
+/* 거래 요약 카드 */
+.trading-summary-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin: 16px 20px;
+  box-shadow: var(--shadow-card);
+}
+
+.trading-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.trading-stat {
+  text-align: center;
+  padding: 16px;
+  background: var(--kakao-gray-100);
+  border-radius: var(--radius-md);
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.trading-stat:hover {
+  border-color: var(--kakao-yellow);
+  background: var(--kakao-gray-200);
+}
+
+.trading-stat-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--kakao-gray-800);
+  margin-bottom: 4px;
+}
+
+.trading-stat-label {
+  font-size: 12px;
+  color: var(--kakao-gray-500);
+  font-weight: 600;
+}
+
+/* 관심종목 카드 */
+.watchlist-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin: 16px 20px;
+  box-shadow: var(--shadow-card);
+}
+
+.watchlist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.watchlist-item {
+  padding: 12px;
+  background: var(--kakao-gray-100);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--kakao-gray-200);
+  transition: all 0.2s ease;
+}
+
+.watchlist-item:hover {
+  background: var(--kakao-gray-200);
+  border-color: var(--kakao-yellow);
+}
+
+.watchlist-symbol {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--kakao-gray-800);
+  margin-bottom: 4px;
+}
+
+.watchlist-market {
+  font-size: 12px;
+  color: var(--kakao-gray-500);
+  margin-bottom: 8px;
+}
+
+.watchlist-price {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--kakao-gray-700);
+}
+
+/* 거래 내역 카드 */
+.trades-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin: 16px 20px;
+  box-shadow: var(--shadow-card);
+}
+
+.trades-list {
+  margin-top: 16px;
+}
+
+.trade-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--kakao-gray-200);
+}
+
+.trade-item:last-child {
+  border-bottom: none;
+}
+
+.trade-info {
+  flex: 1;
+}
+
+.trade-symbol {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--kakao-gray-800);
+  margin-bottom: 4px;
+}
+
+.trade-details {
+  font-size: 14px;
+  color: var(--kakao-gray-500);
+}
+
+.trade-amount {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--kakao-gray-800);
+}
+
+/* 앱 행동 카드 */
+.behaviors-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin: 16px 20px;
+  box-shadow: var(--shadow-card);
+}
+
+.behavior-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.behavior-stat {
+  text-align: center;
+  padding: 12px;
+  background: var(--kakao-gray-100);
+  border-radius: var(--radius-md);
+}
+
+.behavior-stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--kakao-gray-800);
+  margin-bottom: 4px;
+}
+
+.behavior-stat-label {
+  font-size: 12px;
+  color: var(--kakao-gray-500);
+}
+
+/* MBTI 설문지 스타일 */
+.mbti-questionnaire {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin: 16px 20px;
+  box-shadow: var(--shadow-card);
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--kakao-gray-200);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--gradient-primary);
+  border-radius: var(--radius-sm);
+  transition: width 0.3s ease;
+}
+
+.question-card {
+  background: var(--kakao-gray-100);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.question-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--kakao-gray-800);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.options-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.option-button {
+  padding: 16px 20px;
+  background: white;
+  border: 2px solid var(--kakao-gray-200);
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--kakao-gray-700);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.option-button:hover {
+  border-color: var(--kakao-yellow);
+  background: var(--kakao-gray-100);
+  transform: translateY(-1px);
+}
+
+.option-button:active {
+  transform: translateY(0);
+}
+
+/* 상세 분석 카드 */
+.analysis-detail-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin: 16px 20px;
+  box-shadow: var(--shadow-card);
+}
+
+.analysis-section {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: var(--kakao-gray-100);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--kakao-yellow);
+}
+
+.analysis-section:last-child {
+  margin-bottom: 0;
+}
+
+.analysis-section h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--kakao-gray-800);
+  margin-bottom: 12px;
+}
+
+.analysis-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--kakao-gray-200);
+}
+
+.analysis-item:last-child {
+  border-bottom: none;
+}
+
+.analysis-label {
+  font-size: 14px;
+  color: var(--kakao-gray-600);
+}
+
+.analysis-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--kakao-gray-800);
+}
+
+/* 사용자 선택기 */
+.user-selector {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin: 16px 20px;
+  box-shadow: var(--shadow-card);
+}
+
+.user-selector select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--kakao-gray-200);
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  background: white;
+  color: var(--kakao-gray-800);
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.user-selector select:focus {
+  outline: none;
+  border-color: var(--kakao-yellow);
+}
+
+/* 로딩 스피너 */
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--kakao-gray-200);
+  border-top: 4px solid var(--kakao-yellow);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 에러 메시지 */
+.error-message {
+  background: #FFE6E6;
+  color: var(--profit-red);
+  padding: 16px;
+  border-radius: var(--radius-md);
+  margin: 16px 20px;
+  border: 1px solid #FFB3B3;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* 성공 메시지 */
+.success-message {
+  background: #E6F7E6;
+  color: var(--profit-green);
+  padding: 16px;
+  border-radius: var(--radius-md);
+  margin: 16px 20px;
+  border: 1px solid #B3E6B3;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .securities-header {
+    padding: 12px 16px;
+  }
+  
+  .securities-header h1 {
+    font-size: 18px;
+  }
+  
+  .securities-card,
+  .user-info-card,
+  .trading-summary-card,
+  .watchlist-card,
+  .trades-card,
+  .behaviors-card,
+  .mbti-questionnaire,
+  .analysis-detail-card,
+  .user-selector {
+    margin: 12px 16px;
+    padding: 16px;
+  }
+  
+  .tab-navigation {
+    margin: 12px 16px;
+  }
+  
+  .tab-button {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  
+  .user-info-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .trading-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .watchlist-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .behavior-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .user-info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .trading-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .behavior-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .mbti-type h4 {
+    font-size: 20px;
+  }
+  
+  .question-text {
+    font-size: 16px;
+  }
+}
+
+/* 다크 모드 지원 */
+@media (prefers-color-scheme: dark) {
+  .securities-app {
+    background: linear-gradient(180deg, var(--kakao-gray-900) 0%, var(--kakao-gray-800) 100%);
+  }
+  
+  .securities-card,
+  .user-info-card,
+  .trading-summary-card,
+  .watchlist-card,
+  .trades-card,
+  .behaviors-card,
+  .mbti-questionnaire,
+  .analysis-detail-card,
+  .user-selector {
+    background: var(--kakao-gray-800);
+    border-color: var(--kakao-gray-700);
+    color: var(--kakao-gray-100);
+  }
+  
+  .securities-card-title,
+  .mbti-type h4,
+  .user-info-value,
+  .trading-stat-value,
+  .watchlist-symbol,
+  .trade-symbol,
+  .behavior-stat-value {
+    color: var(--kakao-gray-100);
+  }
+  
+  .securities-card-subtitle,
+  .mbti-type p,
+  .user-info-label,
+  .trading-stat-label,
+  .watchlist-market,
+  .trade-details,
+  .behavior-stat-label {
+    color: var(--kakao-gray-400);
+  }
+  
+  .user-info-item,
+  .trading-stat,
+  .watchlist-item,
+  .behavior-stat,
+  .analysis-section {
+    background: var(--kakao-gray-700);
+  }
+  
+  .question-card {
+    background: var(--kakao-gray-700);
+  }
+  
+  .option-button {
+    background: var(--kakao-gray-700);
+    border-color: var(--kakao-gray-600);
+    color: var(--kakao-gray-100);
+  }
+  
+  .option-button:hover {
+    background: var(--kakao-gray-600);
+  }
+  
+  .user-selector select {
+    background: var(--kakao-gray-700);
+    border-color: var(--kakao-gray-600);
+    color: var(--kakao-gray-100);
+  }
+}

@@ -1,0 +1,654 @@
+import React, { useEffect, useMemo, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "\@/components/ui/card";
+import { Button } from "\@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "\@/components/ui/sheet";
+import { Textarea } from "\@/components/ui/textarea";
+import { BookOpen, Rocket, LineChart, BarChart2, Shield, Sparkles, Compass, ClipboardList, PlayCircle, RefreshCw, Send, ChevronLeft, Trash2, UploadCloud, NotebookText } from "lucide-react";
+// ========================= Types (keep at top) =========================
+export type View = 'home'|'report'|'practice'|'risk';
+// ========================= Agents =========================
+const AGENTS = \[
+{ id: "growth", name: "불꽃 호랑이", summary: "뜨거운 성장주에 올인하는 모험가형.", icon: <Rocket className="w-5 h-5 text-emerald-400"/>, syllabus:\["성장주 찾기","실적 모멘텀","섹터 순환"\] },
+{ id: "dividend", name: "든든 올빼미", summary: "배당으로 매달 용돈 받는 안정형.", icon: <Shield className="w-5 h-5 text-emerald-400"/>, syllabus:\["배당 일정","꾸준한 기업","금리 체크"\] },
+{ id: "index", name: "거북이 플랜", summary: "ETF 적립으로 느긋하게 장기투자.", icon: <LineChart className="w-5 h-5 text-emerald-400"/>, syllabus:\["ETF 기본","리밸런싱","분산투자"\] },
+{ id: "value", name: "가치 여우", summary: "숨은 보석 찾아 모으는 저평가 헌터.", icon: <BarChart2 className="w-5 h-5 text-emerald-400"/>, syllabus:\["PER/PB 보기","안전마진","경기 사이클"\] },
+{ id: "quant", name: "룰 기반 까마귀", summary: "데이터와 규칙으로만 판단하는 이성형.", icon: <Sparkles className="w-5 h-5 text-emerald-400"/>, syllabus:\["팩터 투자","백테스트","비중 조정"\] },
+{ id: "esg", name: "초록 사슴", summary: "환경·사회도 챙기는 착한 투자.", icon: <Sparkles className="w-5 h-5 text-emerald-400"/>, syllabus:\["ESG 지표","임팩트","그린워싱 체크"\] }
+\];
+const STANDARD\_AGENT = { id: "standard", name: "스탠다드 버디", summary: "투자 입문자를 위한 기본 가이드.", icon: <BookOpen className="w-5 h-5 text-emerald-400"/>, syllabus:\["주식/ETF 기초","거래화면 튜토리얼","리스크 기본"\] } as const;
+type AgentKey = typeof AGENTS\[number\]\["id"\] | "standard";
+type AgentMeta = { id: AgentKey; name: string; summary?: string; syllabus: string\[\]; icon: React.ReactNode };
+function getAgentMeta(id: AgentKey): AgentMeta {
+return (id === "standard" ? STANDARD\_AGENT : (AGENTS.find(a=>a.id===id) as any)) as AgentMeta;
+}
+// ========================= Memo Types/Utils =========================
+export type LearnMemo = {
+id: string;
+agent: AgentKey;
+title: string;
+content: string;
+dateStr: string;
+createdAt: number;
+synced?: boolean;
+};
+const MEMO\_KEY = "learnMemosV1";
+function loadMemos(): LearnMemo\[\] {
+try { const raw = localStorage.getItem(MEMO\_KEY); return raw ? JSON.parse(raw) : \[\]; } catch { return \[\]; }
+}
+function saveMemos(all: LearnMemo\[\]) {
+localStorage.setItem(MEMO\KEY, JSON.stringify(all));
+}
+function makeId(){ return ${Date.now()}\${Math.random().toString(16).slice(2)}; }
+// ========================= Agent Chat Sheet =========================
+function AgentChatSheet({ open, onOpenChange, agentId }: { open:boolean; onOpenChange:(v:boolean)=>void; agentId: AgentKey }){
+const meta = getAgentMeta(agentId);
+const \[messages, setMessages\] = useState<Array<{role:"user"|"assistant"; text:string}>>(\[\]);
+const \[draft, setDraft\] = useState("");
+useEffect(()=>{
+if(open){
+setMessages(\[{ role: "assistant", text: 안녕하세요! ${meta.name} 에이전트 모드로 대화를 시작할게요. 먼저 주제를 골라볼까요? }\]);
+setDraft("");
+}
+}, \[open, agentId\]);
+function send(){
+if(!draft.trim()) return;
+setMessages((m)=>\[...m, { role: "user", text: draft }, { role: "assistant", text: "(데모) 메시지를 받았어요. 실제 모델 연동 전까지는 미리보기 응답을 보여줘요." }\]);
+setDraft("");
+}
+const topics = \["오늘의 3줄 리포트","섹터 로테이션","리스크 체크","뉴스 요약","실전 학습 시나리오"\];
+return (
+<Sheet open={open} onOpenChange={onOpenChange}>
+<SheetContent side="right" className="bg-slate-950 text-white w-full sm:max-w-\[560px\] p-0 flex flex-col">
+<div className="p-4 border-b border-slate-800">
+<SheetHeader>
+1:12
+<SheetTitle className="text-white">토픽 우선 대화 · {meta.name}</SheetTitle>
+<SheetDescription className="text-slate-300">주제를 먼저 고르고, 필요한 Q&A로 확장해요.</SheetDescription>
+</SheetHeader>
+</div>
+<div className="p-3 border-b border-slate-800 flex gap-2 overflow-x-auto">
+{topics.map((t)=\> (
+<Button key={t} size="sm" variant="outline" className="rounded-full border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 whitespace-nowrap">{t}</Button>
+))}
+</div>
+<div className="flex-1 overflow-y-auto p-4 space-y-3">
+{messages.map((m, i)=\> (
+<div key={i} className={max-w-\[85%\] p-3 rounded-2xl ${m.role==="user"?"ml-auto bg-emerald-900/30 border border-emerald-800":"bg-slate-900 border border-slate-800"}}>
+<div className="text-xs mb-1 opacity-60">{m.role === "user" ? "나" : "AI"}</div>
+<div className="text-sm whitespace-pre-wrap">{m.text}</div>
+</div>
+))}
+</div>
+<div className="p-3 border-t border-slate-800">
+<div className="flex items-center gap-2">
+<Textarea value={draft} onChange={(e)=\> setDraft(e.target.value)} placeholder="메시지를 입력하세요" className="bg-slate-900 border-slate-700 text-white resize-none h-20" />
+<Button onClick={send} className="h-20" title="보내기"><Send className="w-4 h-4"/></Button>
+</div>
+</div>
+</SheetContent>
+</Sheet>
+);
+}
+// ========================= MBTI Sheet (10문항) =========================
+function MbtiSheet({ onFinish }: { onFinish: (result:any)=>void }){
+const AGENT\_KEYS = \["growth","dividend","index","value","quant","esg"\] as const;
+type ScoringKey = typeof AGENT\_KEYS\[number\];
+const baseScores: Record<ScoringKey, number\> = { growth:0, dividend:0, index:0, value:0, quant:0, esg:0 };
+const \[open, setOpen\] = useState(false);
+const QUESTIONS: Array<{id:string; q:string; options: Array<{label:string; scores: Partial<Record<ScoringKey, number>>}>}\> = \[
+{ id: "risk", q: "단기 변동성을 감수하더라도 높은 수익을 노린다.", options: \[
+{ label: "매우 그렇다", scores: { growth:3, quant:2 } },
+{ label: "보통", scores: { growth:1, value:1, index:1 } },
+{ label: "아니다", scores: { dividend:2, index:2 } },
+\]},
+{ id: "horizon", q: "나의 투자 기간은?", options: \[
+{ label: "1\~3년", scores: { growth:1, value:1 } },
+{ label: "3\~7년", scores: { index:2, value:1 } },
+{ label: "7년+", scores: { index:3, dividend:1 } },
+\]},
+{ id: "rule", q: "룰 기반(정량) 전략에 매력을 느낀다.", options: \[
+{ label: "매우 그렇다", scores: { quant:3, index:1 } },
+{ label: "보통", scores: { quant:1, value:1 } },
+{ label: "아니다", scores: { growth:1, dividend:1 } },
+\]},
+{ id: "income", q: "정기적인 현금흐름(배당/이자)이 중요하다.", options: \[
+{ label: "매우 중요", scores: { dividend:3, value:1 } },
+{ label: "있으면 좋음", scores: { dividend:1, index:1 } },
+{ label: "상관없음", scores: { growth:1, quant:1 } },
+\]},
+{ id: "esg", q: "지속가능성/임팩트도 의사결정에 반영한다.", options: \[
+{ label: "항상", scores: { esg:3, value:1 } },
+{ label: "상황에 따라", scores: { esg:1, index:1 } },
+{ label: "거의 안 함", scores: { growth:1, quant:1 } },
+\]},
+{ id: "valuegrowth", q: "저평가 종목을 느리게 모으는 편이다 vs 성장 스토리에 베팅한다.", options: \[
+{ label: "저평가 선호", scores: { value:3, dividend:1 } },
+{ label: "둘 다", scores: { value:1, growth:1, index:1 } },
+{ label: "성장 베팅", scores: { growth:3 } },
+\]},
+{ id: "diversify", q: "분산투자와 저비용을 최우선으로 둔다.", options: \[
+{ label: "그렇다", scores: { index:3, esg:1 } },
+{ label: "보통", scores: { index:1, value:1 } },
+{ label: "아니다", scores: { growth:1, quant:1 } },
+\]},
+{ id: "vol", q: "일일 변동성(±3% 내외)에 스트레스를 받는다.", options: \[
+{ label: "매우 받는다", scores: { dividend:2, index:2 } },
+{ label: "보통", scores: { value:1, index:1 } },
+{ label: "거의 없음", scores: { growth:2, quant:1 } },
+\]},
+1:12
+{ id: "drawdown", q: "-20% 드로다운을 경험하면?", options: \[
+{ label: "규칙대로 리밸런싱", scores: { index:2, quant:1 } },
+{ label: "저가매수(가치점검)", scores: { value:2 } },
+{ label: "리스크 축소/현금", scores: { dividend:2 } },
+\]},
+{ id: "activity", q: "거래 빈도 선호는?", options: \[
+{ label: "낮음(월 1\~2회)", scores: { index:2, dividend:1 } },
+{ label: "중간(주 1회)", scores: { value:1, esg:1 } },
+{ label: "높음(주 2회+)", scores: { growth:2, quant:2 } },
+\]},
+\];
+const \[answers, setAnswers\] = useState<number\[\]>(Array(QUESTIONS.length).fill(-1));
+const progress = Math.round((answers.filter(a =\> a>=0).length / QUESTIONS.length) \* 100);
+function computeScores(){
+const scores = { ...baseScores } as Record<ScoringKey, number>;
+answers.forEach((a, idx)=>{ if (a<0) return; const opt = QUESTIONS\[idx\].options\[a\]; Object.entries(opt.scores).forEach((\[k,v\])=>{ (scores as any)\[k\] += v as number; }); });
+const total = Object.values(scores).reduce((acc, v)=>acc+v, 0) || 1;
+const normalized = Object.fromEntries(Object.entries(scores).map((\[k,v\])=>\[k, Number(((v as number)/total).toFixed(3))\]));
+const ranked = Object.entries(scores).sort((a,b)=\> (b\[1\] as number) - (a\[1\] as number)).map((\[k\])=>k);
+return { raw: scores, norm: normalized as Record<string, number>, ranked };
+}
+return (
+<Sheet open={open} onOpenChange={setOpen}>
+<SheetTrigger asChild>
+<Button size="sm" variant="secondary" className="rounded-full flex items-center gap-1 text-white bg-slate-700 hover:bg-slate-600">
+<Compass className="w-4 h-4"/\> MBTI 추천
+</Button>
+</SheetTrigger>
+<SheetContent side="bottom" className="bg-slate-900 text-white h-\[85vh\] overflow-y-auto">
+<SheetHeader>
+<SheetTitle className="text-white font-semibold">투자 MBTI (10문항)</SheetTitle>
+<SheetDescription className="text-slate-300">답변을 바탕으로 맞춤 AGENT 조합을 추천해요.</SheetDescription>
+</SheetHeader>
+<div className="p-2">
+<div className="text-xs text-slate-400 mb-3">진행률 {progress}%</div>
+<div className="space-y-3">
+{QUESTIONS.map((q, qi)=\> (
+<Card key={q.id} className="bg-slate-800 border-slate-700">
+<CardHeader className="pb-2">
+<CardTitle className="text-sm text-white">{qi+1}. {q.q}</CardTitle>
+</CardHeader>
+<CardContent className="flex flex-wrap gap-2">
+{q.options.map((opt, oi)=\> (
+<Button key={oi} size="sm" variant={answers\[qi\]===oi?"default":"outline"} className={answers\[qi\]===oi?"":"border-slate-600 text-slate-200"}
+onClick={()=>{ const next=\[...answers\]; next\[qi\]=oi; setAnswers(next); }}>
+{opt.label}
+</Button>
+))}
+</CardContent>
+</Card>
+))}
+</div>
+<div className="mt-4 flex gap-2">
+<Button variant="ghost" className="text-slate-300" onClick={()=\> setAnswers(Array(QUESTIONS.length).fill(-1))}>초기화</Button>
+<Button className="ml-auto" disabled={answers.some(a=>a<0)} onClick={()=>{ const result = computeScores(); onFinish(result); setOpen(false); }}>결과 반영</Button>
+</div>
+</div>
+</SheetContent>
+</Sheet>
+);
+}
+// ========================= Agent Picker Sheet =========================
+function AgentPickerSheet({ onPick, onPickViaMBTI }: { onPick: (id:AgentKey)=>void; onPickViaMBTI: (id:AgentKey, result:any)=>void }){
+const \[open, setOpen\] = useState(false);
+return (
+<Sheet open={open} onOpenChange={setOpen}>
+<SheetTrigger asChild>
+<Button size="sm" variant="outline" className="rounded-full flex items-center gap-1 bg-slate-800 text-slate-100 border-slate-600 hover:bg-slate-700 focus-visible:ring-0">
+<RefreshCw className="w-4 h-4"/\> Agent 선택/변경
+</Button>
+</SheetTrigger>
+1:12
+<SheetContent side="bottom" className="bg-slate-900 text-white h-\[85vh\] overflow-y-auto">
+<SheetHeader>
+<SheetTitle className="text-white">AGENT 목록</SheetTitle>
+<SheetDescription className="text-slate-300">원하는 성향을 직접 선택하거나 MBTI로 추천받으세요.</SheetDescription>
+</SheetHeader>
+<div className="px-2 pb-4 flex items-center justify-end">
+<MbtiSheet onFinish={(res:any)=>{ const top=res.ranked?.\[0\]; if(top){ onPickViaMBTI(top as AgentKey, res); setOpen(false);} }} />
+</div>
+<div className="grid md:grid-cols-2 gap-3 p-2">
+{\[STANDARD\_AGENT,...AGENTS\].map((a)=>(
+<Card key={a.id} className="bg-slate-800 border border-slate-700 cursor-pointer" onClick={()=>{ onPick(a.id as AgentKey); setOpen(false); }}>
+<CardContent className="p-4">
+<div className="flex items-center gap-3">
+{a.icon}
+<div>
+<div className="font-medium text-white">{a.name}</div>
+{a.summary && <div className="text-xs text-slate-400">{a.summary}</div>}
+<div className="mt-2 flex flex-wrap gap-2">
+{(a as any).syllabus?.slice(0,3).map((s:string, i:number)=>(
+<span key={i} className="px-2 py-1 rounded-full bg-slate-700 text-\[10px\]">{s}</span>
+))}
+</div>
+</div>
+</div>
+</CardContent>
+</Card>
+))}
+</div>
+</SheetContent>
+</Sheet>
+);
+}
+// ========================= Current Selection =========================
+function CurrentSelection({ agentId, fromMBTI, mbtiDist, onOpenChat, onPicked, onPickedViaMBTI }: { agentId: AgentKey; fromMBTI?: boolean; mbtiDist?: Record<string, number>; onOpenChat: ()=>void; onPicked: (id:AgentKey)=>void; onPickedViaMBTI: (id:AgentKey, res:any)=>void }){
+const a = agentId === "standard" ? STANDARD\_AGENT : (AGENTS.find(x=>x.id===agentId) as any);
+const distEntries = mbtiDist ? Object.entries(mbtiDist).sort((a,b)=\> b\[1\]-a\[1\]).slice(0,2) : \[\];
+return (
+<Card className="bg-slate-900 border-slate-800">
+<CardHeader className="flex flex-row items-center justify-between">
+<CardTitle className="text-base text-white flex items-center gap-2">나의 현재 Agent {fromMBTI && <span className="ml-1 px-2 py-0.5 rounded-full text-\[10px\] bg-emerald-900/40 text-emerald-300">MBTI 추천</span>}</CardTitle>
+<AgentPickerSheet onPick={onPicked} onPickViaMBTI={onPickedViaMBTI} />
+</CardHeader>
+<CardContent>
+<div className="rounded-2xl bg-gradient-to-b from-slate-700 to-slate-800 p-3 flex items-center gap-3 justify-between">
+<div className="flex items-center gap-3">
+{a.icon}
+<div>
+<div className="text-white font-medium">{a.name}</div>
+{a.summary && <div className="text-xs text-slate-200">{a.summary}</div>}
+</div>
+</div>
+<Button size="sm" onClick={onOpenChat}>대화하기</Button>
+</div>
+{fromMBTI && distEntries.length>0 && (
+<div className="mt-2 text-\[11px\] text-slate-300 flex gap-2 items-center">
+<span className="opacity-80">추천 근거:</span>
+{distEntries.map((\[k,v\])=\> (
+<span key={k} className="px-2 py-1 rounded-full bg-slate-800 border border-slate-700">{k.toUpperCase()} {Math.round(v\100)}%</span>
+))}
+</div>
+)}
+<div className="mt-2 flex flex-wrap gap-2">
+{a.syllabus.map((s:string, i:number)=>(
+<span key={i} className="px-2 py-1 rounded-full bg-slate-800 border border-slate-700 text-\[11px\] text-slate-200">{s}</span>
+))}
+</div>
+</CardContent>
+</Card>
+);
+}
+// ========================= Coach Tiles =========================
+function CoachTiles({ onOpen }:{ onOpen: (view:View)=>void }){
+const tiles = \[
+1:12
+{title: "오늘의 3줄 리포트", icon: <ClipboardList className="w-4 h-4 text-emerald-400"/>, desc: "시장 인사이트와 학습을 쉽게 요약해 드려요.", view:'report' as View},
+{title: "실습: 뉴스 기반 의사결정", icon: <PlayCircle className="w-4 h-4 text-emerald-400"/>, desc: "시나리오별 가상 매수/매도", view:'practice' as View},
+{title: "리스크 체크", icon: <Shield className="w-4 h-4 text-emerald-400"/>, desc: "변동성·드로다운 체감", view:'risk' as View},
+\];
+return (
+<div className="grid md:grid-cols-3 gap-3">
+{tiles.map((t,i)=>(
+<Card key={i} className="bg-slate-900 border-slate-800">
+<CardHeader>
+<CardTitle className="text-base flex items-center gap-2 text-white">{t.icon}{t.title}</CardTitle>
+<CardDescription className="text-slate-300">{t.desc}</CardDescription>
+</CardHeader>
+<CardContent>
+<Button variant="outline" className="w-full" onClick={()=>onOpen(t.view)}>실행</Button>
+</CardContent>
+</Card>
+))}
+</div>
+);
+}
+// ========================= Memo Center (right sheet) =========================
+function MemoCenter({ open, onOpenChange, memos, onDelete, onSync }:{ open:boolean; onOpenChange:(v:boolean)=>void; memos:LearnMemo\[\]; onDelete:(id:string)=>void; onSync:(id:string)=>Promise<void>; }){
+return (
+<Sheet open={open} onOpenChange={onOpenChange}>
+<SheetContent side="right" className="bg-slate-950 text-white w-full sm:max-w-\[520px\] p-0 flex flex-col">
+<div className="p-4 border-b border-slate-800">
+<SheetHeader>
+<SheetTitle className="text-white flex items-center gap-2"><NotebookText className="w-4 h-4"/\> 학습 메모함</SheetTitle>
+<SheetDescription className="text-slate-300">로컬 저장된 메모 목록입니다. 항목별로 서버 동기화를 실행할 수 있어요.</SheetDescription>
+</SheetHeader>
+</div>
+<div className="flex-1 overflow-y-auto p-4 space-y-3">
+{memos.length===0 && (
+<div className="text-sm text-slate-400">아직 저장된 메모가 없어요. 리포트 화면에서 <b>학습 메모 저장</b>을 눌러보세요.</div>
+)}
+{memos.sort((a,b)=\> b.createdAt - a.createdAt).map(m =\> (
+<Card key={m.id} className="bg-slate-900 border-slate-800">
+<CardHeader className="pb-2">
+<CardTitle className="text-sm text-white flex items-center justify-between">
+<span>{m.title}</span>
+<span className={text-\[10px\] px-2 py-0.5 rounded-full ${m.synced? 'bg-emerald-900/40 text-emerald-300':'bg-slate-800 text-slate-300'} }>{m.synced? '서버 동기화 완료':'로컬 저장'}</span>
+</CardTitle>
+<CardDescription className="text-xs text-slate-400">{m.dateStr} · {getAgentMeta(m.agent).name}</CardDescription>
+</CardHeader>
+<CardContent className="text-sm text-slate-200 whitespace-pre-wrap">
+{m.content}
+<div className="mt-3 flex gap-2">
+<Button size="sm" variant="outline" onClick={()=\> onDelete(m.id)}><Trash2 className="w-4 h-4 mr-1"/>삭제</Button>
+<Button size="sm" variant="outline" onClick={()=\> onSync(m.id)}><UploadCloud className="w-4 h-4 mr-1"/>서버 동기화</Button>
+</div>
+</CardContent>
+</Card>
+))}
+</div>
+</SheetContent>
+</Sheet>
+);
+}
+// ========================= Report Page (Agent별 3줄 + 메모 저장) =========================
+function ReportPage({ agentId, onOpenMemo }:{ agentId: AgentKey; onOpenMemo: ()=>void }){
+const meta = getAgentMeta(agentId);
+const dateStr = useMemo(()=\> new Date().toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'short' }), \[\]);
+type Line = { icon: string; title: string; desc: string; href?: string };
+const L: Record<AgentKey, Line\[\]\> = {
+standard: \[
+{ icon:":상승세인\_차트:", title: '오늘의 주요 지수 한눈에', desc: '코스피/나스닥/달러지수 등 시장 온도체크', href:'#' },
+{ icon:":파란색\_책:", title: 'ETF/주식 기초 퀵 학습', desc: '용어 1개만 쏙! (PER·ETF·분산)', href:'#' },
+1:12
+{ icon:":방패:", title: '리스크 관리 기본 팁', desc: '목표비중/손절 기준 미리 정하기', href:'#' },
+\],
+growth: \[
+{ icon:":불:", title: '핫 섹터 Top3', desc: '반도체·AI·2차전지 등 단기 모멘텀', href:'#' },
+{ icon:":날짜:", title: '실적/신제품 캘린더', desc: '이번 주 핵심 이벤트만 쏙 정리', href:'#' },
+{ icon:":번쩍:", title: '모멘텀 아이디어', desc: '단계적 진입·분할 매수 가이드', href:'#' },
+\],
+dividend: \[
+{ icon:":돈가방:", title: '이번 주 배당 일정', desc: '배당락/지급일 한눈에', href:'#' },
+{ icon:":막대\_차트:", title: '배당수익률 vs 금리', desc: '채권 금리와 비교해 매력도 점검', href:'#' },
+{ icon:":벽돌:", title: '보수적 액션 제안', desc: '현금흐름 안정·분산 유지', href:'#' },
+\],
+index: \[
+{ icon:":나침반:", title: '지수/ETF 스냅샷', desc: '일간·주간 성과 요약', href:'#' },
+{ icon:":시계\_반대\_방향\_화살표:", title: '리밸런싱 신호', desc: '규칙 기반 체크리스트', href:'#' },
+{ icon:":거북이:", title: '장기 분산 제안', desc: '적립/분할매수 권장', href:'#' },
+\],
+value: \[
+{ icon:":보석:", title: '저평가 Top3', desc: '밸류 갭 큰 업종/종목', href:'#' },
+{ icon:":하락세인\_차트:", title: 'PER/PB & 안전마진', desc: '재무 vs 가격 괴리 체크', href:'#' },
+{ icon:":여우\_얼굴:", title: '장기 보유 전략', desc: '가치 훼손 없으면 버티기', href:'#' },
+\],
+quant: \[
+{ icon:":삼각자:", title: '팩터 성과 스냅샷', desc: '가치·모멘텀·퀄리티 등', href:'#' },
+{ icon:":막대\_차트:", title: '룰 신호', desc: '진입/청산 트리거 체크', href:'#' },
+{ icon:":저울:", title: '리스크 파리티', desc: '변동성 타겟팅으로 비중 조정', href:'#' },
+\],
+esg: \[
+{ icon:":새싹:", title: 'ESG 뉴스 Top3', desc: '환경·사회·지배구조 이슈', href:'#' },
+{ icon:":건전지:", title: '임팩트 ETF 흐름', desc: '그린/클린 에너지 ETF', href:'#' },
+{ icon:":사슴:", title: 'ESG 점수 체크', desc: '포트폴리오 지속가능성 점검', href:'#' },
+\],
+};
+const lines = L\[agentId\];
+const contentText = lines.map((l,i)=\> ${i+1}. ${l.title} — ${l.desc}).join("\\n");
+return (
+<div className="p-4 space-y-3">
+<div className="flex items-center justify-between">
+<div className="flex items-center gap-2">
+<div className="rounded-xl bg-slate-800 p-2">{getAgentMeta(agentId).icon}</div>
+<div>
+<div className="text-white font-medium">오늘의 3줄 리포트 · {getAgentMeta(agentId).name}</div>
+<div className="text-xs text-slate-400">{dateStr}</div>
+</div>
+</div>
+<div className="flex gap-2">
+<Button variant="outline" size="sm" onClick={()=\> window.location.reload()}>
+재생성
+</Button>
+<Button size="sm" onClick={()=>{
+const all = loadMemos();
+const memo: LearnMemo = { id: makeId(), agent: agentId, title: 3줄 리포트 - ${getAgentMeta(agentId).name}, content: contentText, dateStr, createdAt: Date.now() };
+saveMemos(\[memo, ...all\]);
+onOpenMemo();
+}}>학습 메모 저장</Button>
+</div>
+</div>
+{lines.map((l, i)=\> (
+<Card key={i} className="bg-slate-900 border-slate-800">
+<CardHeader className="pb-2">
+<CardTitle className="text-sm text-white flex items-center gap-2"><span>{l.icon}</span><span>{i+1}. {l.title}</span></CardTitle>
+<CardDescription className="text-slate-300">{l.desc}</CardDescription>
+</CardHeader>
+<CardContent className="pt-0">
+<div className="flex flex-wrap gap-2">
+<Button size="sm" variant="outline" asChild>
+<a href={l.href || '#'} target="\_blank" rel="noreferrer">자세히</a>
+</Button>
+</div>
+</CardContent>
+</Card>
+))}
+</div>
+);
+}
+// ========================= Practice Page (Past backtest sandbox) =========================
+function PracticePage({ agentId, onOpenMemo }:{ agentId: AgentKey; onOpenMemo: ()=>void }){
+const meta = getAgentMeta(agentId);
+const horizons = \[5, 20\]; // 가볍게 5일, 20일만
+// --- 간단한 가격 경로 생성기(결정론적) ---
+function genPrices(offset:number){
+const arr:number\[\] = \[\];
+const base = 100;
+for(let i=0;i<=20;i++){
+const drift = 0.15 \ i; // 완만한 우상향 드리프트
+const wave = 2.5 \* Math.sin((i+offset) \* 0.6);
+arr.push(Number((base + drift + wave).toFixed(2)));
+}
+return arr;
+}
+1:12
+// ---------- Agent별 추천 섹터/종목 (목데이터) ----------
+const RECO: Record<AgentKey, { sectors: string\[\]; tickers: string\[\] }\> = {
+standard: { sectors: \["지수 ETF","대형주","채권혼합"\], tickers:\["SPY","QQQ","VTI","TIGER 200","ARIRANG 200"\] },
+growth:   { sectors: \["반도체","AI 인프라","2차전지"\], tickers:\["NVDA","TSM","AMD","SOXX","LIT"\] },
+dividend: { sectors: \["통신","유틸리티","REITs"\], tickers:\["KO","T","VZ","VNQ","SPHD"\] },
+index:    { sectors: \["미국시장","한국시장","글로벌"\], tickers:\["SPY","IVV","VTI","TIGER 200","ACWI"\] },
+value:    { sectors: \["금융","산업재","필수소비"\], tickers:\["VTV","BRK.B","XLF","UNH","HDV"\] },
+quant:    { sectors: \["모멘텀","퀄리티","가치"\], tickers:\["MTUM","QUAL","VLUE","SPLV","USMV"\] },
+esg:      { sectors: \["클린에너지","탄소배출권","ESG 광범위"\], tickers:\["ICLN","TAN","KRBN","ESGU","CLEAN"\] },
+};
+// Agent별 시나리오(뉴스 요약 + 기본 심볼)
+const scenarioByAgent: Record<AgentKey, { id:string; date:string; symbol:string; title:string; news:string\[\] }\> = {
+standard: { id:"std1", date:"2024-06-12", symbol:"ETF-ALL", title:"지수 급락 후 반등 초입?", news:\["전일 변동성 확대, 파월 발언으로 안도 랠리 조짐","원/달러 보합권, 반도체 강세","ETF 분할매수 논의 증가"\] },
+growth:   { id:"gr1",  date:"2024-07-03", symbol:"AI-CHIP", title:"신제품 런칭 기대감 확대", news:\["주요 업체, 차세대 AI 가속기 공개","수주 가시성 상향 리포트 다수","밸류에이션 부담 논쟁 지속"\] },
+dividend: { id:"dv1",  date:"2024-09-18", symbol:"DIV-KOR", title:"배당 공시 앞두고 관심 증가", news:\["현금흐름 안정 기업 배당 성장 전망","배당락 전후 전략 기사 다수","금리 하락 기대감"\] },
+index:    { id:"ix1",  date:"2024-05-20", symbol:"ETF-KOSPI", title:"리밸런싱 시그널 체크", news:\["섹터 비중 편차 확대","ETF 추적오차 축소","월말 리밸런싱 수요"\] },
+value:    { id:"vl1",  date:"2024-03-11", symbol:"VAL-IND", title:"PER 저점대 진입, 저평가 논쟁", news:\["업황 반등 초기 신호","자사주 매입 공시","밸류 갭 해소 기대"\] },
+quant:    { id:"qt1",  date:"2024-02-27", symbol:"FACT-MOM", title:"모멘텀 룰: 고점돌파 이후", news:\["52주 신고가 갱신","룰 기반 진입 신호 발생","거래비용·슬리피지 유의"\] },
+esg:      { id:"eg1",  date:"2024-08-09", symbol:"GREEN-ETF", title:"ESG 등급 상향 이슈", news:\["환경 규제 완화/보조금 확대","공급망 리스크 완화","클린테크 자금 유입"\] },
+};
+const base = scenarioByAgent\[agentId\];
+// 사용자가 고른 섹터/심볼
+const \[pickedSector, setPickedSector\] = useState<string|null>(null);
+const \[pickedSymbol, setPickedSymbol\] = useState<string>(RECO\[agentId\].tickers\[0\] || base.symbol);
+// 심볼별로 가격 경로 변형(심볼 해시 기반 오프셋)
+function pricesFor(symbol:string){
+const seed = (symbol.charCodeAt(0) + symbol.length + (symbol.charCodeAt(symbol.length-1)||0)) % 7;
+return genPrices(seed);
+}
+type Decision = 'buy'|'sell'|'hold';
+const \[decision, setDecision\] = useState<Decision|null>(null);
+const \[showResult, setShowResult\] = useState(false);
+function computeOutcomes(prices:number\[\], horizons:number\[\]){
+const entry = prices\[0\];
+return horizons.filter(h=\> h < prices.length).map(h=>{
+const end = prices\[h\];
+const pnlPct = Number(((end/entry - 1) \* 100).toFixed(2));
+const minP = Math.min(...prices.slice(0, h+1));
+const mddPct = Number(((minP/entry - 1) \* 100).toFixed(2));
+return { horizon:h, pnlPct, mddPct };
+});
+}
+const prices = pricesFor(pickedSymbol);
+const outcomes = computeOutcomes(prices, horizons);
+function onChoose(d:Decision){ setDecision(d); setShowResult(true); }
+function saveMemo(){
+const dateStr = new Date().toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'short' });
+const memoText = \실습(과거) · 결정: ${decision?.toUpperCase()} ${outcomes.map(o=\\> ${o.horizon}일 수익률 ${o.pnlPct}% · 최저낙폭 ${o.mddPct}%).join(', ')} 대상: ${pickedSymbol}${pickedSector?  · 섹터 ${pickedSector}:''} 시나리오: ${base.title}\\;
+const all = loadMemos();
+const memo: LearnMemo = { id: makeId(), agent: agentId, title: 실습 결과 - ${meta.name} (${pickedSymbol}), content: memoText, dateStr, createdAt: Date.now() };
+saveMemos(\[memo, ...all\]);
+onOpenMemo();
+}
+function randomPick(){
+const arr = RECO\[agentId\].tickers;
+const r = arr\[Math.floor(Math.random()\arr.length)\] || base.symbol;
+setPickedSymbol(r);
+}
+return (
+1:12
+<div className="p-4 space-y-4">
+<div className="flex items-center gap-2">
+<div className="rounded-xl bg-slate-800 p-2">{meta.icon}</div>
+<div>
+<div className="text-white font-medium">시나리오 실습(과거) · {meta.name}</div>
+<div className="text-xs text-slate-400">기준일 {base.date} · 현재 선택: <b>{pickedSymbol}</b>{pickedSector?  · 섹터 ${pickedSector}:''}</div>
+</div>
+</div>
+{/\ 추천 섹터 & 종목 선택 \/}
+<Card className="bg-slate-900 border-slate-800">
+<CardHeader className="pb-2">
+<CardTitle className="text-sm text-white">추천 섹터 & 종목</CardTitle>
+<CardDescription className="text-slate-300">에이전트 성향에 맞춰 빠르게 선택해보세요. (데모 데이터)</CardDescription>
+</CardHeader>
+<CardContent className="space-y-3">
+<div className="text-xs text-slate-400">섹터</div>
+<div className="flex flex-wrap gap-2">
+{RECO\[agentId\].sectors.map(sec =\> (
+<Button key={sec} size="sm" variant={pickedSector===sec? 'default':'outline'} className={pickedSector===sec? '':'border-slate-700 text-slate-200'} onClick={()=\> setPickedSector(sec)}>{sec}</Button>
+))}
+</div>
+<div className="text-xs text-slate-400 mt-2">종목/ETF</div>
+<div className="flex flex-wrap gap-2">
+{RECO\[agentId\].tickers.map(tk =\> (
+<Button key={tk} size="sm" variant={pickedSymbol===tk? 'default':'outline'} className={pickedSymbol===tk? '':'border-slate-700 text-slate-200'} onClick={()=\> setPickedSymbol(tk)}>{tk}</Button>
+))}
+<Button size="sm" variant="ghost" onClick={randomPick}>랜덤 추천</Button>
+</div>
+<div className="text-\[11px\] text-slate-400">※ 교육용 데모이며 투자 권유가 아닙니다.</div>
+</CardContent>
+</Card>
+{/\ 시나리오 카드 \/}
+<Card className="bg-slate-900 border-slate-800">
+<CardHeader className="pb-2">
+<CardTitle className="text-sm text-white">{base.title}</CardTitle>
+<CardDescription className="text-slate-300">뉴스 포인트</CardDescription>
+</CardHeader>
+<CardContent className="text-sm text-slate-200 space-y-2">
+<ul className="list-disc list-inside space-y-1">
+{base.news.map((n, idx)=\> (<li key={idx}>{n}</li>))}
+</ul>
+<div className="text-xs text-slate-400">가격 경로(샘플): {prices.slice(0,8).join(' → ')} ...</div>
+</CardContent>
+</Card>
+{/\ 결정 패널 \/}
+<Card className="bg-slate-900 border-slate-800">
+<CardHeader className="pb-2">
+<CardTitle className="text-sm text-white">의사결정</CardTitle>
+<CardDescription className="text-slate-300">가상 매수/매도 또는 관망을 선택하세요.</CardDescription>
+</CardHeader>
+<CardContent className="flex gap-2 flex-wrap">
+<Button onClick={()=\> onChoose('buy')}>가상 매수</Button>
+<Button variant="outline" onClick={()=\> onChoose('hold')}>관망</Button>
+<Button variant="outline" onClick={()=\> onChoose('sell')}>가상 매도</Button>
+</CardContent>
+</Card>
+{/\ 결과 패널 \*/}
+{showResult && (
+<Card className="bg-slate-900 border-slate-800">
+<CardHeader className="pb-2">
+<CardTitle className="text-sm text-white">결과 피드백</CardTitle>
+<CardDescription className="text-slate-300">제출 즉시 과거 데이터를 기준으로 성과를 확인합니다.</CardDescription>
+</CardHeader>
+<CardContent className="space-y-2">
+<div className="text-sm">내 결정: <b>{decision?.toUpperCase()}</b></div>
+<div className="text-sm space-y-1">
+{outcomes.map(o=\> (
+<div key={o.horizon} className="flex items-center justify-between border border-slate-800 rounded-lg p-2">
+<div className="text-xs text-slate-300">{o.horizon}일</div>
+<div className="text-sm">수익률 <b>{o.pnlPct}%</b\> · 최저낙폭 <b>{o.mddPct}%</b></div>
+</div>
+))}
+</div>
+1:12
+<div className="pt-2 flex gap-2">
+<Button size="sm" onClick={saveMemo}>학습 메모 저장</Button>
+<Button size="sm" variant="outline" onClick={()=>{ setDecision(null); setShowResult(false); }}>다시 해보기</Button>
+</div>
+</CardContent>
+</Card>
+)}
+</div>
+);
+}
+// ========================= Root =========================
+export default function AgentUnifiedUI(){
+const \[picked, setPicked\] = useState<AgentKey>("standard");
+const \[fromMBTI, setFromMBTI\] = useState<boolean>(false);
+const \[mbtiDist, setMbtiDist\] = useState<Record<string, number\> | undefined>(undefined);
+const \[view, setView\] = useState<View>('home');
+const \[chatOpen, setChatOpen\] = useState<boolean>(false);
+// Memo state
+const \[memoOpen, setMemoOpen\] = useState(false);
+const \[memos, setMemos\] = useState<LearnMemo\[\]>(\[\]);
+useEffect(()=>{ setMemos(loadMemos()); }, \[\]);
+function deleteMemo(id:string){ const next = loadMemos().filter(m=\> m.id!==id); saveMemos(next); setMemos(next); }
+async function syncMemo(id:string){ await new Promise(res=\> setTimeout(res, 300)); const next = loadMemos().map(m=\> m.id===id? { ...m, synced:true }: m); saveMemos(next); setMemos(next); }
+const titleByView: Record<View, string\> = {
+home: '투자교육 AI 비서/선생님',
+report: '오늘의 3줄 리포트',
+practice: '실습: 뉴스 기반 의사결정',
+risk: '리스크 체크',
+};
+return (
+<div className="bg-black min-h-screen text-white flex flex-col">
+<header className="px-4 py-3 border-b border-slate-800 flex items-center gap-2">
+{view !== 'home' && (
+<Button variant="ghost" size="icon" className="text-slate-200" onClick={()=\> setView('home')}>
+<ChevronLeft className="w-5 h-5"/>
+</Button>
+)}
+<div className="text-sm text-white font-semibold flex-1">{titleByView\[view\]}</div>
+<div className="flex items-center gap-2">
+<Button size="sm" variant="outline" className="bg-slate-800 border-slate-700 text-slate-100" onClick={()=\> setMemoOpen(true)}>
+<NotebookText className="w-4 h-4 mr-1"/\> 메모함
+</Button>
+<AgentPickerSheet onPick={(id)=>{ setPicked(id); setFromMBTI(false); setMbtiDist(undefined); }} onPickViaMBTI={(id, res)=>{ setPicked(id); setFromMBTI(true); setMbtiDist(res.norm); }} />
+</div>
+</header>
+<main className="flex-1 overflow-y-auto">
+{view==='home' && (
+<div className="p-4 space-y-6">
+<CurrentSelection
+agentId={picked}
+fromMBTI={fromMBTI}
+mbtiDist={mbtiDist}
+onOpenChat={()=\> setChatOpen(true)}
+onPicked={(id)=>{ setPicked(id); setFromMBTI(false); setMbtiDist(undefined); }}
+onPickedViaMBTI={(id, res)=>{ setPicked(id); setFromMBTI(true); setMbtiDist(res.norm); }}
+/>
+<Card className="bg-slate-900 border-slate-800">
+<CardHeader>
+<CardTitle className="text-base text-white">데일리 코칭</CardTitle>
+<CardDescription className="text-slate-300">나의 학습과 투자를 돕는 맞춤 코칭 서비스</CardDescription>
+</CardHeader>
+<CardContent>
+<CoachTiles onOpen={(v)=\> setView(v)} />
+</CardContent>
+</Card>
+</div>
+)}
+{view==='report' && (<ReportPage agentId={picked} onOpenMemo={()=>{ setMemoOpen(true); setMemos(loadMemos()); }} />)}
+{view==='practice' && (<PracticePage agentId={picked} onOpenMemo={()=>{ setMemoOpen(true); setMemos(loadMemos()); }} />)}
+{view==='risk' && (<div className="p-4">\[리스크 체크 페이지 프리뷰 - {picked}\]</div>)}
+</main>
+<AgentChatSheet open={chatOpen} onOpenChange={setChatOpen} agentId={picked} />
+<MemoCenter open={memoOpen} onOpenChange={(v)=>{ setMemoOpen(v); if(!v) setMemos(loadMemos()); }} memos={memos} onDelete={deleteMemo} onSync={syncMemo} />
+</div>
+);
+}

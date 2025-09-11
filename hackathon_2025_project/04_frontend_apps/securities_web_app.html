@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>증권서비스 사용자 데이터 조회 - 실시간 MBTI 추천</title>
+    <link rel="stylesheet" href="kakao_securities_ui.css">
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        /* 추가 스타일 */
+        .api-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 1000;
+        }
+        
+        .api-status.connected {
+            background: var(--profit-green);
+            color: white;
+        }
+        
+        .api-status.disconnected {
+            background: var(--profit-red);
+            color: white;
+        }
+        
+        .api-status.connecting {
+            background: var(--profit-orange);
+            color: white;
+        }
+        
+        .floating-action {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-lg);
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        
+        .floating-action:hover {
+            transform: scale(1.1);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            padding: 16px 20px;
+            background: white;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            border-left: 4px solid var(--kakao-yellow);
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-card);
+            text-align: center;
+            border: 1px solid var(--kakao-gray-200);
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--kakao-gray-800);
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: var(--kakao-gray-500);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <!-- API 상태 표시 -->
+    <div id="api-status" class="api-status connecting">API 연결 중...</div>
+    
+    <!-- 알림 -->
+    <div id="notification" class="notification">
+        <div style="font-weight: 600; margin-bottom: 4px;">알림</div>
+        <div id="notification-message">메시지</div>
+    </div>
+    
+    <!-- 플로팅 액션 버튼 -->
+    <div class="floating-action" onclick="refreshData()" title="데이터 새로고침">
+        🔄
+    </div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useCallback } = React;
+
+        // API 서비스 클래스
+        class SecuritiesDataService {
+            constructor() {
+                this.baseURL = 'http://localhost:5001/api';
+            }
+
+            async request(endpoint, options = {}) {
+                try {
+                    const response = await fetch(`${this.baseURL}${endpoint}`, {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...options.headers
+                        },
+                        ...options
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    return await response.json();
+                } catch (error) {
+                    console.error('API request failed:', error);
+                    throw error;
+                }
+            }
+
+            // 사용자 관련 API
+            async getUsers(limit = 100, offset = 0) {
+                return await this.request(`/users?limit=${limit}&offset=${offset}`);
+            }
+
+            async getUserInfo(userId) {
+                return await this.request(`/users/${userId}`);
+            }
+
+            async getUserTrades(userId, days = 30) {
+                return await this.request(`/users/${userId}/trades?days=${days}`);
+            }
+
+            async getUserBehaviors(userId, days = 7) {
+                return await this.request(`/users/${userId}/behaviors?days=${days}`);
+            }
+
+            async getUserWatchlist(userId) {
+                return await this.request(`/users/${userId}/watchlist`);
+            }
+
+            async getUserBalance(userId, days = 30) {
+                return await this.request(`/users/${userId}/balance?days=${days}`);
+            }
+
+            async getTradingSummary(userId) {
+                return await this.request(`/users/${userId}/trading-summary`);
+            }
+
+            async getUsageSummary(userId, days = 30) {
+                return await this.request(`/users/${userId}/usage-summary?days=${days}`);
+            }
+
+            // MBTI 관련 API
+            async getMBTIRecommendation(userId) {
+                return await this.request(`/users/${userId}/mbti-recommendation`);
+            }
+
+            async getMBTIAnalysis(userId) {
+                return await this.request(`/users/${userId}/mbti-analysis`);
+            }
+
+            async getMBTIQuestionnaire() {
+                return await this.request('/mbti/questionnaire');
+            }
+
+            async calculateMBTIFromQuestionnaire(answers) {
+                return await this.request('/mbti/calculate', {
+                    method: 'POST',
+                    body: JSON.stringify({ answers })
+                });
+            }
+
+            async getMBTITypes() {
+                return await this.request('/mbti/types');
+            }
+
+            async healthCheck() {
+                return await this.request('/health');
+            }
+        }
+
+        // 전역 서비스 인스턴스
+        const apiService = new SecuritiesDataService();
+
+        // API 상태 관리
+        function updateAPIStatus(status, message) {
+            const statusElement = document.getElementById('api-status');
+            statusElement.className = `api-status ${status}`;
+            statusElement.textContent = message;
+        }
+
+        // 알림 표시
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            const messageElement = document.getElementById('notification-message');
+            
+            messageElement.textContent = message;
+            notification.className = `notification show`;
+            
+            setTimeout(() => {
+                notification.className = 'notification';
+            }, 3000);
+        }
+
+        // 데이터 새로고침
+        function refreshData() {
+            showNotification('데이터를 새로고침합니다...', 'info');
+            window.location.reload();
+        }
+
+        // API 연결 확인
+        async function checkAPIConnection() {
+            try {
+                updateAPIStatus('connecting', 'API 연결 중...');
+                await apiService.healthCheck();
+                updateAPIStatus('connected', 'API 연결됨');
+                return true;
+            } catch (error) {
+                updateAPIStatus('disconnected', 'API 연결 실패');
+                showNotification('API 서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요.', 'error');
+                return false;
+            }
+        }
+
+        // React Hook: 사용자 데이터
+        function useUserData(userId) {
+            const [userData, setUserData] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+
+            useEffect(() => {
+                const fetchUserData = async () => {
+                    if (!userId) return;
+                    
+                    try {
+                        setLoading(true);
+                        const response = await apiService.getUserInfo(userId);
+                        setUserData(response.data);
+                    } catch (err) {
+                        setError(err.message);
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+
+                fetchUserData();
+            }, [userId]);
+
+            return { userData, loading, error };
+        }
+
+        // React Hook: MBTI 추천
+        function useMBTIRecommendation(userId) {
+            const [recommendation, setRecommendation] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+
+            useEffect(() => {
+                const fetchRecommendation = async () => {
+                    if (!userId) return;
+                    
+                    try {
+                        setLoading(true);
+                        const response = await apiService.getMBTIRecommendation(userId);
+                        setRecommendation(response.data);
+                    } catch (err) {
+                        setError(err.message);
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+
+                fetchRecommendation();
+            }, [userId]);
+
+            return { recommendation, loading, error };
+        }
+
+        // React Hook: 거래 요약
+        function useTradingSummary(userId) {
+            const [summary, setSummary] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+
+            useEffect(() => {
+                const fetchSummary = async () => {
+                    if (!userId) return;
+                    
+                    try {
+                        setLoading(true);
+                        const response = await apiService.getTradingSummary(userId);
+                        setSummary(response.data);
+                    } catch (err) {
+                        setError(err.message);
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+
+                fetchSummary();
+            }, [userId]);
+
+            return { summary, loading, error };
+        }
+
+        // React Hook: 사용자 목록
+        function useUsers() {
+            const [users, setUsers] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+
+            useEffect(() => {
+                const fetchUsers = async () => {
+                    try {
+                        setLoading(true);
+                        const response = await apiService.getUsers(50);
+                        setUsers(response.data);
+                    } catch (err) {
+                        setError(err.message);
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+
+                fetchUsers();
+            }, []);
+
+            return { users, loading, error };
+        }
+
+        // 사용자 선택기 컴포넌트
+        function UserSelector({ onUserSelect }) {
+            const { users, loading, error } = useUsers();
+
+            if (loading) return (
+                <div className="user-selector securities-card">
+                    <div className="loading-spinner">
+                        <div className="spinner"></div>
+                    </div>
+                </div>
+            );
+            
+            if (error) return (
+                <div className="error-message">
+                    오류: {error}
+                </div>
+            );
+
+            return (
+                <div className="user-selector securities-card">
+                    <div className="securities-card-header">
+                        <h3 className="securities-card-title">👥 사용자 선택</h3>
+                    </div>
+                    <select onChange={(e) => onUserSelect(e.target.value)}>
+                        <option value="">사용자를 선택하세요</option>
+                        {users.map((user) => (
+                            <option key={user.user_id} value={user.user_id}>
+                                {user.user_id} ({user.grade}급, {user.age_group})
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            );
+        }
+
+        // MBTI 추천 카드 컴포넌트
+        function MBTIRecommendationCard({ userId }) {
+            const { recommendation, loading, error } = useMBTIRecommendation(userId);
+
+            if (loading) return (
+                <div className="loading-spinner">
+                    <div className="spinner"></div>
+                </div>
+            );
+            
+            if (error) return (
+                <div className="error-message">
+                    오류: {error}
+                </div>
+            );
+            
+            if (!recommendation) return (
+                <div className="error-message">
+                    추천 결과가 없습니다.
+                </div>
+            );
+
+            const topRecommendation = recommendation.recommendations[0];
+
+            return (
+                <div className="mbti-recommendation-card securities-card">
+                    <div className="securities-card-header">
+                        <h3 className="securities-card-title">🎯 AI 추천 투자 MBTI</h3>
+                    </div>
+                    
+                    <div className="mbti-type">
+                        <h4>{topRecommendation.name}</h4>
+                        <p>{topRecommendation.description}</p>
+                        <div className="confidence">
+                            신뢰도: {topRecommendation.confidence}%
+                        </div>
+                    </div>
+                    
+                    <div className="all-recommendations">
+                        <h5 style={{marginBottom: '16px', color: 'var(--kakao-gray-700)', fontSize: '16px', fontWeight: '600'}}>전체 추천 순위:</h5>
+                        <div className="trading-stats">
+                            {recommendation.recommendations.map((rec, index) => (
+                                <div key={rec.type} className="trading-stat">
+                                    <div className="trading-stat-value">{index + 1}</div>
+                                    <div className="trading-stat-label">{rec.name}</div>
+                                    <div style={{fontSize: '12px', color: 'var(--kakao-gray-500)', marginTop: '4px'}}>
+                                        {rec.confidence}%
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // 거래 요약 카드 컴포넌트
+        function TradingSummaryCard({ userId }) {
+            const { summary, loading, error } = useTradingSummary(userId);
+
+            if (loading) return (
+                <div className="loading-spinner">
+                    <div className="spinner"></div>
+                </div>
+            );
+            
+            if (error) return (
+                <div className="error-message">
+                    오류: {error}
+                </div>
+            );
+            
+            if (!summary) return (
+                <div className="error-message">
+                    거래 요약 데이터가 없습니다.
+                </div>
+            );
+
+            return (
+                <div className="trading-summary-card securities-card">
+                    <div className="securities-card-header">
+                        <h3 className="securities-card-title">📈 거래 요약</h3>
+                    </div>
+                    <div className="trading-stats">
+                        <div className="trading-stat">
+                            <div className="trading-stat-value">{summary.total_trades}</div>
+                            <div className="trading-stat-label">총 거래 횟수</div>
+                        </div>
+                        <div className="trading-stat">
+                            <div className="trading-stat-value">{summary.buy_trades}</div>
+                            <div className="trading-stat-label">매수 거래</div>
+                        </div>
+                        <div className="trading-stat">
+                            <div className="trading-stat-value">{summary.sell_trades}</div>
+                            <div className="trading-stat-label">매도 거래</div>
+                        </div>
+                        <div className="trading-stat">
+                            <div className="trading-stat-value">{(summary.total_amount / 10000).toFixed(0)}만원</div>
+                            <div className="trading-stat-label">총 거래 금액</div>
+                        </div>
+                        <div className="trading-stat">
+                            <div className="trading-stat-value" style={{color: summary.total_profit_loss >= 0 ? 'var(--profit-red)' : 'var(--profit-blue)'}}>
+                                {(summary.total_profit_loss / 10000).toFixed(0)}만원
+                            </div>
+                            <div className="trading-stat-label">총 손익</div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // 사용자 정보 카드 컴포넌트
+        function UserInfoCard({ userId }) {
+            const { userData, loading, error } = useUserData(userId);
+
+            if (loading) return (
+                <div className="loading-spinner">
+                    <div className="spinner"></div>
+                </div>
+            );
+            
+            if (error) return (
+                <div className="error-message">
+                    오류: {error}
+                </div>
+            );
+            
+            if (!userData) return (
+                <div className="error-message">
+                    사용자 정보가 없습니다.
+                </div>
+            );
+
+            return (
+                <div className="user-info-card securities-card">
+                    <div className="securities-card-header">
+                        <h3 className="securities-card-title">👤 사용자 정보</h3>
+                    </div>
+                    <div className="user-info-grid">
+                        <div className="user-info-item">
+                            <div className="user-info-label">사용자 ID</div>
+                            <div className="user-info-value">{userData.user_id}</div>
+                        </div>
+                        <div className="user-info-item">
+                            <div className="user-info-label">등급</div>
+                            <div className="user-info-value">{userData.grade}급</div>
+                        </div>
+                        <div className="user-info-item">
+                            <div className="user-info-label">나이대</div>
+                            <div className="user-info-value">{userData.age_group}</div>
+                        </div>
+                        <div className="user-info-item">
+                            <div className="user-info-label">성별</div>
+                            <div className="user-info-value">{userData.gender === 'M' ? '남성' : '여성'}</div>
+                        </div>
+                        <div className="user-info-item">
+                            <div className="user-info-label">투자 경험</div>
+                            <div className="user-info-value">{userData.experience_months}개월</div>
+                        </div>
+                        <div className="user-info-item">
+                            <div className="user-info-label">초기 자본금</div>
+                            <div className="user-info-value">{userData.initial_capital?.toLocaleString()}만원</div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // 통계 개요 컴포넌트
+        function StatsOverview() {
+            const [stats, setStats] = useState({
+                totalUsers: 0,
+                totalTrades: 0,
+                totalBehaviors: 0,
+                totalWatchlists: 0
+            });
+
+            useEffect(() => {
+                const fetchStats = async () => {
+                    try {
+                        const [usersResponse, behaviorsResponse, tradesResponse, watchlistsResponse] = await Promise.all([
+                            apiService.getUsers(1),
+                            apiService.request('/users/user_0001/behaviors?days=30'),
+                            apiService.request('/users/user_0001/trades?days=30'),
+                            apiService.request('/users/user_0001/watchlist')
+                        ]);
+
+                        setStats({
+                            totalUsers: 1000, // 더미 데이터에서 생성된 사용자 수
+                            totalTrades: 12184, // 더미 데이터에서 생성된 거래 수
+                            totalBehaviors: 34640, // 더미 데이터에서 생성된 행동 수
+                            totalWatchlists: 8463 // 더미 데이터에서 생성된 관심종목 수
+                        });
+                    } catch (error) {
+                        console.error('Failed to fetch stats:', error);
+                    }
+                };
+
+                fetchStats();
+            }, []);
+
+            return (
+                <div className="stats-overview">
+                    <div className="stat-card">
+                        <div className="stat-number">{stats.totalUsers.toLocaleString()}</div>
+                        <div className="stat-label">총 사용자</div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="stat-number">{stats.totalTrades.toLocaleString()}</div>
+                        <div className="stat-label">총 거래</div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="stat-number">{stats.totalBehaviors.toLocaleString()}</div>
+                        <div className="stat-label">앱 행동</div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="stat-number">{stats.totalWatchlists.toLocaleString()}</div>
+                        <div className="stat-label">관심종목</div>
+                    </div>
+                </div>
+            );
+        }
+
+        // 메인 앱 컴포넌트
+        function SecuritiesDataApp() {
+            const [selectedUserId, setSelectedUserId] = useState(null);
+            const [activeTab, setActiveTab] = useState('overview');
+
+            return (
+                <div className="securities-app">
+                    <div className="securities-header">
+                        <h1>📊 증권서비스 사용자 데이터 조회</h1>
+                    </div>
+                    
+                    <UserSelector onUserSelect={setSelectedUserId} />
+                    
+                    {!selectedUserId && (
+                        <div className="securities-card" style={{margin: '20px', textAlign: 'center', padding: '40px'}}>
+                            <h3 style={{color: 'var(--kakao-gray-700)', marginBottom: '20px'}}>👆 위에서 사용자를 선택해주세요</h3>
+                            <p style={{color: 'var(--kakao-gray-500)'}}>
+                                사용자를 선택하면 해당 사용자의 데이터 분석 결과와 MBTI 추천을 확인할 수 있습니다.
+                            </p>
+                        </div>
+                    )}
+
+                    {selectedUserId && (
+                        <div className="app-content">
+                            <div className="tab-navigation">
+                                <button 
+                                    className={`tab-button ${activeTab === 'overview' ? 'active' : ''}`}
+                                    onClick={() => setActiveTab('overview')}
+                                >
+                                    📊 개요
+                                </button>
+                                <button 
+                                    className={`tab-button ${activeTab === 'mbti' ? 'active' : ''}`}
+                                    onClick={() => setActiveTab('mbti')}
+                                >
+                                    🎯 MBTI 추천
+                                </button>
+                                <button 
+                                    className={`tab-button ${activeTab === 'trading' ? 'active' : ''}`}
+                                    onClick={() => setActiveTab('trading')}
+                                >
+                                    📈 거래 분석
+                                </button>
+                                <button 
+                                    className={`tab-button ${activeTab === 'profile' ? 'active' : ''}`}
+                                    onClick={() => setActiveTab('profile')}
+                                >
+                                    👤 프로필
+                                </button>
+                            </div>
+
+                            <div className="tab-content">
+                                {activeTab === 'overview' && (
+                                    <div>
+                                        <StatsOverview />
+                                        <UserInfoCard userId={selectedUserId} />
+                                        <TradingSummaryCard userId={selectedUserId} />
+                                    </div>
+                                )}
+                                {activeTab === 'mbti' && <MBTIRecommendationCard userId={selectedUserId} />}
+                                {activeTab === 'trading' && <TradingSummaryCard userId={selectedUserId} />}
+                                {activeTab === 'profile' && <UserInfoCard userId={selectedUserId} />}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // 앱 초기화
+        async function initApp() {
+            const isConnected = await checkAPIConnection();
+            
+            if (isConnected) {
+                ReactDOM.render(<SecuritiesDataApp />, document.getElementById('root'));
+                showNotification('증권서비스 데이터 조회 시스템이 준비되었습니다!', 'success');
+            } else {
+                ReactDOM.render(
+                    <div className="securities-app">
+                        <div className="securities-header">
+                            <h1>📊 증권서비스 사용자 데이터 조회</h1>
+                        </div>
+                        <div className="securities-card" style={{margin: '20px', textAlign: 'center', padding: '40px'}}>
+                            <h3 style={{color: 'var(--profit-red)', marginBottom: '20px'}}>⚠️ API 서버 연결 실패</h3>
+                            <p style={{color: 'var(--kakao-gray-600)', marginBottom: '20px'}}>
+                                API 서버에 연결할 수 없습니다. 다음 단계를 확인해주세요:
+                            </p>
+                            <div style={{textAlign: 'left', maxWidth: '400px', margin: '0 auto'}}>
+                                <p>1. 터미널에서 다음 명령어를 실행하세요:</p>
+                                <div className="code-block" style={{fontSize: '12px', margin: '10px 0'}}>
+                                    python securities_data_api.py
+                                </div>
+                                <p>2. 서버가 정상적으로 시작되었는지 확인하세요</p>
+                                <p>3. 브라우저를 새로고침하세요</p>
+                            </div>
+                            <button 
+                                onClick={() => window.location.reload()}
+                                style={{
+                                    marginTop: '20px',
+                                    padding: '12px 24px',
+                                    background: 'var(--gradient-primary)',
+                                    border: 'none',
+                                    borderRadius: 'var(--radius-md)',
+                                    fontSize: '16px',
+                                    fontWeight: '600',
+                                    color: 'var(--kakao-black)',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                🔄 새로고침
+                            </button>
+                        </div>
+                    </div>,
+                    document.getElementById('root')
+                );
+            }
+        }
+
+        // 앱 시작
+        initApp();
+    </script>
+</body>
+</html>

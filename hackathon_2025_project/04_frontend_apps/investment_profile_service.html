@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>투자성향 맞춤형 서비스 - 카카오페이증권</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        :root {
+            --kakao-yellow: #FEE500;
+            --kakao-black: #3C1E1E;
+            --kakao-gray-100: #F2F3F5;
+            --kakao-gray-200: #E5E8EB;
+            --kakao-gray-300: #D1D6DB;
+            --kakao-gray-400: #9AA1A9;
+            --kakao-gray-500: #737B84;
+            --kakao-gray-600: #4E5968;
+            --kakao-gray-700: #333D4B;
+            --kakao-gray-800: #191F28;
+            --kakao-blue: #4285F4;
+            --kakao-green: #00C851;
+            --kakao-red: #FF4444;
+            --gradient-primary: linear-gradient(135deg, #FEE500 0%, #FFD700 100%);
+            --gradient-card: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            --gradient-dark: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--kakao-gray-100);
+            color: var(--kakao-gray-800);
+            line-height: 1.6;
+        }
+
+        .header {
+            background: var(--gradient-primary);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header h1 {
+            color: var(--kakao-black);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .profile-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--kakao-black);
+        }
+
+        .profile-info h3 {
+            color: var(--kakao-black);
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .profile-info p {
+            color: var(--kakao-gray-700);
+            font-size: 0.8rem;
+        }
+
+        .mbti-badge {
+            background: var(--kakao-gray-800);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid var(--kakao-gray-200);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--kakao-gray-200);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--kakao-gray-800);
+        }
+
+        .button {
+            background: var(--gradient-primary);
+            color: var(--kakao-black);
+            border: none;
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(254, 229, 0, 0.3);
+        }
+
+        .button.secondary {
+            background: white;
+            color: var(--kakao-gray-700);
+            border: 2px solid var(--kakao-gray-300);
+        }
+
+        .button.secondary:hover {
+            background: var(--kakao-gray-100);
+        }
+
+        .user-selector {
+            margin-bottom: 2rem;
+        }
+
+        .user-selector select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--kakao-gray-300);
+            border-radius: 12px;
+            font-size: 1rem;
+            background: white;
+        }
+
+        .investment-type-card {
+            background: var(--gradient-card);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            border: 2px solid var(--kakao-yellow);
+            margin-bottom: 2rem;
+        }
+
+        .investment-type-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .investment-type-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--kakao-gray-800);
+            margin-bottom: 0.5rem;
+        }
+
+        .investment-type-description {
+            color: var(--kakao-gray-600);
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .confidence-score {
+            background: var(--kakao-gray-100);
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            display: inline-block;
+            font-weight: 600;
+            color: var(--kakao-gray-700);
+        }
+
+        .mbti-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .mbti-modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .mbti-step {
+            display: none;
+        }
+
+        .mbti-step.active {
+            display: block;
+        }
+
+        .question-card {
+            background: var(--kakao-gray-100);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .question-title {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--kakao-gray-800);
+        }
+
+        .option-button {
+            background: white;
+            border: 2px solid var(--kakao-gray-300);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            text-align: left;
+        }
+
+        .option-button:hover {
+            border-color: var(--kakao-yellow);
+            background: #fff9e6;
+        }
+
+        .option-button.selected {
+            border-color: var(--kakao-yellow);
+            background: var(--gradient-primary);
+            color: var(--kakao-black);
+        }
+
+        .progress-bar {
+            background: var(--kakao-gray-200);
+            border-radius: 10px;
+            height: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .progress-fill {
+            background: var(--gradient-primary);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .recommendation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .recommendation-card {
+            background: var(--kakao-gray-100);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .recommendation-card h4 {
+            color: var(--kakao-gray-800);
+            margin-bottom: 0.5rem;
+        }
+
+        .recommendation-card p {
+            color: var(--kakao-gray-600);
+            font-size: 0.9rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--kakao-gray-500);
+        }
+
+        .error {
+            background: #ffebee;
+            color: var(--kakao-red);
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid var(--kakao-red);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .profile-section {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // ========================= API Service =========================
+        class InvestmentProfileService {
+            constructor() {
+                this.baseURL = 'http://localhost:5001/api';
+            }
+
+            async request(endpoint, options = {}) {
+                try {
+                    console.log(`API 요청: ${this.baseURL}${endpoint}`);
+                    const response = await fetch(`${this.baseURL}${endpoint}`, {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...options.headers
+                        },
+                        ...options
+                    });
+                    
+                    console.log(`API 응답 상태: ${response.status}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log('API 응답 데이터:', data);
+                    return data;
+                } catch (error) {
+                    console.error('API request failed:', error);
+                    throw error;
+                }
+            }
+
+            async getUsers() {
+                return this.request('/users');
+            }
+
+            async getUser(userId) {
+                return this.request(`/users/${userId}`);
+            }
+
+            async getUserBehaviors(userId, days = 90) {
+                return this.request(`/users/${userId}/behaviors?days=${days}`);
+            }
+
+            async getUserTrades(userId, limit = 100) {
+                return this.request(`/users/${userId}/trades?limit=${limit}`);
+            }
+
+            async getUserWatchlist(userId) {
+                return this.request(`/users/${userId}/watchlist`);
+            }
+
+            async getMBTIRecommendation(userId) {
+                return this.request(`/users/${userId}/mbti-recommendation`);
+            }
+
+            async getMBTIAnalysis(userId) {
+                return this.request(`/users/${userId}/mbti-analysis`);
+            }
+
+            async getMBTIQuestionnaire() {
+                return this.request('/mbti/questionnaire');
+            }
+
+            async calculateMBTIFromQuestionnaire(answers) {
+                return this.request('/mbti/calculate', {
+                    method: 'POST',
+                    body: JSON.stringify({ answers })
+                });
+            }
+        }
+
+        // ========================= Investment Types =========================
+        const INVESTMENT_TYPES = {
+            growth: {
+                name: "불꽃 호랑이",
+                icon: "🔥",
+                description: "뜨거운 성장주에 올인하는 모험가형",
+                characteristics: ["높은 수익 추구", "단기 변동성 감수", "성장주 선호", "모멘텀 투자"],
+                recommendations: {
+                    stocks: ["삼성전자", "SK하이닉스", "NAVER", "카카오"],
+                    sectors: ["기술", "반도체", "바이오", "2차전지"],
+                    strategies: ["모멘텀 투자", "섹터 로테이션", "성장주 집중"]
+                }
+            },
+            dividend: {
+                name: "든든 올빼미",
+                icon: "🦉",
+                description: "배당으로 매달 용돈 받는 안정형",
+                characteristics: ["안정적 수익", "배당 수익 중시", "리스크 회피", "장기 투자"],
+                recommendations: {
+                    stocks: ["한국전력", "KT&G", "신세계", "POSCO"],
+                    sectors: ["유틸리티", "통신", "소비재", "금융"],
+                    strategies: ["배당주 투자", "안정성 중시", "장기 보유"]
+                }
+            },
+            index: {
+                name: "거북이 플랜",
+                icon: "🐢",
+                description: "ETF 적립으로 느긋하게 장기투자",
+                characteristics: ["분산투자", "저비용", "장기 투자", "안정성"],
+                recommendations: {
+                    stocks: ["TIGER 200", "ARIRANG 200", "KODEX 200", "ACE 200"],
+                    sectors: ["지수 ETF", "섹터 ETF", "해외 ETF"],
+                    strategies: ["정기 적립", "리밸런싱", "분산투자"]
+                }
+            },
+            value: {
+                name: "가치 여우",
+                icon: "🦊",
+                description: "숨은 보석 찾아 모으는 저평가 헌터",
+                characteristics: ["저평가 종목 발굴", "밸류 투자", "장기 관점", "안전마진"],
+                recommendations: {
+                    stocks: ["현대차", "기아", "LG화학", "SK텔레콤"],
+                    sectors: ["자동차", "화학", "통신", "금융"],
+                    strategies: ["밸류 투자", "저평가 발굴", "안전마진 확보"]
+                }
+            },
+            quant: {
+                name: "룰 기반 까마귀",
+                icon: "🐦‍⬛",
+                description: "데이터와 규칙으로만 판단하는 이성형",
+                characteristics: ["정량적 분석", "백테스트", "팩터 투자", "감정 배제"],
+                recommendations: {
+                    stocks: ["팩터 ETF", "퀄리티 ETF", "모멘텀 ETF"],
+                    sectors: ["팩터 기반", "퀄리티", "모멘텀", "가치"],
+                    strategies: ["팩터 투자", "백테스트", "정량적 분석"]
+                }
+            },
+            esg: {
+                name: "초록 사슴",
+                icon: "🦌",
+                description: "환경·사회도 챙기는 착한 투자",
+                characteristics: ["ESG 중시", "지속가능성", "사회적 가치", "장기 관점"],
+                recommendations: {
+                    stocks: ["ESG ETF", "친환경 기업", "사회적 기업"],
+                    sectors: ["친환경", "신재생에너지", "ESG"],
+                    strategies: ["ESG 투자", "임팩트 투자", "지속가능 투자"]
+                }
+            }
+        };
+
+        // ========================= Components =========================
+        function UserSelector({ users, selectedUser, onUserChange, loading }) {
+            if (loading) {
+                return (
+                    <div className="user-selector">
+                        <div className="loading">사용자 목록을 불러오는 중...</div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="user-selector">
+                    <select value={selectedUser || ''} onChange={(e) => onUserChange(e.target.value)}>
+                        <option value="">사용자를 선택하세요</option>
+                        {users.map(user => (
+                            <option key={user.user_id} value={user.user_id}>
+                                {user.name} ({user.user_id})
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            );
+        }
+
+        function ProfileHeader({ user, investmentType, onStartMBTI }) {
+            if (!user) {
+                return (
+                    <div className="profile-section">
+                        <div className="profile-avatar">👤</div>
+                        <div className="profile-info">
+                            <h3>사용자를 선택해주세요</h3>
+                            <p>투자성향을 확인하려면 사용자를 선택하세요</p>
+                        </div>
+                    </div>
+                );
+            }
+
+            const typeInfo = investmentType ? INVESTMENT_TYPES[investmentType] : null;
+
+            return (
+                <div className="profile-section">
+                    <div className="profile-avatar">
+                        {typeInfo ? typeInfo.icon : '👤'}
+                    </div>
+                    <div className="profile-info">
+                        <h3>{user.name}</h3>
+                        <p>{user.age}세 • {user.gender} • {user.occupation}</p>
+                        {typeInfo && (
+                            <div className="mbti-badge">
+                                {typeInfo.name}
+                            </div>
+                        )}
+                    </div>
+                    <button className="button" onClick={onStartMBTI}>
+                        🎯 투자성향 진단
+                    </button>
+                </div>
+            );
+        }
+
+        function InvestmentTypeCard({ investmentType, confidence }) {
+            if (!investmentType) {
+                return (
+                    <div className="card">
+                        <h2>투자성향을 진단해보세요</h2>
+                        <p>당신의 투자 패턴을 분석하여 맞춤형 투자 성향을 추천해드립니다.</p>
+                    </div>
+                );
+            }
+
+            const typeInfo = INVESTMENT_TYPES[investmentType];
+
+            return (
+                <div className="investment-type-card">
+                    <div className="investment-type-icon">{typeInfo.icon}</div>
+                    <div className="investment-type-name">{typeInfo.name}</div>
+                    <div className="investment-type-description">{typeInfo.description}</div>
+                    <div className="confidence-score">
+                        신뢰도: {Math.round(confidence * 100)}%
+                    </div>
+                </div>
+            );
+        }
+
+        function MBTIModal({ isOpen, onClose, onComplete, userData }) {
+            const [currentStep, setCurrentStep] = useState(0);
+            const [answers, setAnswers] = useState({});
+            const [dataRecommendation, setDataRecommendation] = useState(null);
+            const [loading, setLoading] = useState(false);
+
+            const questions = [
+                {
+                    id: "risk",
+                    question: "단기 변동성을 감수하더라도 높은 수익을 노린다.",
+                    options: [
+                        { label: "매우 그렇다", value: "high" },
+                        { label: "보통", value: "medium" },
+                        { label: "아니다", value: "low" }
+                    ]
+                },
+                {
+                    id: "horizon",
+                    question: "나의 투자 기간은?",
+                    options: [
+                        { label: "1~3년", value: "short" },
+                        { label: "3~7년", value: "medium" },
+                        { label: "7년+", value: "long" }
+                    ]
+                },
+                {
+                    id: "strategy",
+                    question: "어떤 투자 전략을 선호하나요?",
+                    options: [
+                        { label: "성장주 중심", value: "growth" },
+                        { label: "배당주 중심", value: "dividend" },
+                        { label: "ETF 분산투자", value: "index" },
+                        { label: "저평가 종목 발굴", value: "value" }
+                    ]
+                },
+                {
+                    id: "analysis",
+                    question: "투자 결정 시 가장 중시하는 것은?",
+                    options: [
+                        { label: "기술적 분석", value: "technical" },
+                        { label: "기본적 분석", value: "fundamental" },
+                        { label: "데이터 분석", value: "quantitative" },
+                        { label: "ESG 지표", value: "esg" }
+                    ]
+                },
+                {
+                    id: "frequency",
+                    question: "거래 빈도는?",
+                    options: [
+                        { label: "매일", value: "daily" },
+                        { label: "주 1-2회", value: "weekly" },
+                        { label: "월 1-2회", value: "monthly" },
+                        { label: "분기 1회", value: "quarterly" }
+                    ]
+                }
+            ];
+
+            useEffect(() => {
+                if (isOpen && userData) {
+                    loadDataRecommendation();
+                }
+            }, [isOpen, userData]);
+
+            const loadDataRecommendation = async () => {
+                if (!userData) return;
+                
+                setLoading(true);
+                try {
+                    const service = new InvestmentProfileService();
+                    const recommendation = await service.getMBTIRecommendation(userData.user.user_id);
+                    setDataRecommendation(recommendation);
+                } catch (error) {
+                    console.error('데이터 추천 로드 실패:', error);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handleAnswer = (questionId, answer) => {
+                setAnswers(prev => ({
+                    ...prev,
+                    [questionId]: answer
+                }));
+            };
+
+            const nextStep = () => {
+                if (currentStep < questions.length - 1) {
+                    setCurrentStep(currentStep + 1);
+                } else {
+                    calculateFinalResult();
+                }
+            };
+
+            const calculateFinalResult = () => {
+                // 간단한 점수 계산 로직
+                const scores = {
+                    growth: 0,
+                    dividend: 0,
+                    index: 0,
+                    value: 0,
+                    quant: 0,
+                    esg: 0
+                };
+
+                // 답변에 따른 점수 계산
+                Object.entries(answers).forEach(([questionId, answer]) => {
+                    switch (questionId) {
+                        case 'risk':
+                            if (answer === 'high') scores.growth += 3;
+                            else if (answer === 'medium') scores.value += 2;
+                            else scores.dividend += 3;
+                            break;
+                        case 'horizon':
+                            if (answer === 'short') scores.growth += 2;
+                            else if (answer === 'medium') scores.value += 2;
+                            else scores.index += 3;
+                            break;
+                        case 'strategy':
+                            scores[answer] += 3;
+                            break;
+                        case 'analysis':
+                            if (answer === 'technical') scores.growth += 2;
+                            else if (answer === 'fundamental') scores.value += 2;
+                            else if (answer === 'quantitative') scores.quant += 3;
+                            else scores.esg += 3;
+                            break;
+                        case 'frequency':
+                            if (answer === 'daily') scores.growth += 3;
+                            else if (answer === 'weekly') scores.value += 2;
+                            else if (answer === 'monthly') scores.index += 2;
+                            else scores.dividend += 3;
+                            break;
+                    }
+                });
+
+                // 최고 점수 유형 찾기
+                const maxScore = Math.max(...Object.values(scores));
+                const recommendedType = Object.keys(scores).find(key => scores[key] === maxScore);
+                
+                onComplete(recommendedType, maxScore / 15); // 정규화된 신뢰도
+                onClose();
+            };
+
+            if (!isOpen) return null;
+
+            return (
+                <div className="mbti-modal">
+                    <div className="mbti-modal-content">
+                        <div className="card-header">
+                            <h2>🎯 투자성향 진단</h2>
+                            <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '1.5rem' }}>✕</button>
+                        </div>
+
+                        {/* 데이터 기반 추천 */}
+                        {currentStep === 0 && (
+                            <div className="mbti-step active">
+                                <h3>📊 데이터 기반 추천</h3>
+                                {loading ? (
+                                    <div className="loading">분석 중...</div>
+                                ) : dataRecommendation ? (
+                                    <div>
+                                        <p>당신의 거래 패턴과 행동 데이터를 분석한 결과:</p>
+                                        <div className="investment-type-card" style={{ margin: '1rem 0' }}>
+                                            <div className="investment-type-icon">
+                                                {INVESTMENT_TYPES[dataRecommendation.recommended_type]?.icon}
+                                            </div>
+                                            <div className="investment-type-name">
+                                                {INVESTMENT_TYPES[dataRecommendation.recommended_type]?.name}
+                                            </div>
+                                            <div className="confidence-score">
+                                                신뢰도: {Math.round(dataRecommendation.confidence * 100)}%
+                                            </div>
+                                        </div>
+                                        <p>이제 몇 가지 질문에 답변하여 더 정확한 진단을 받아보세요.</p>
+                                    </div>
+                                ) : (
+                                    <div className="error">데이터 분석에 실패했습니다.</div>
+                                )}
+                                <button className="button" onClick={nextStep}>
+                                    질문 시작하기
+                                </button>
+                            </div>
+                        )}
+
+                        {/* 질문 단계 */}
+                        {currentStep > 0 && currentStep <= questions.length && (
+                            <div className="mbti-step active">
+                                <div className="progress-bar">
+                                    <div 
+                                        className="progress-fill" 
+                                        style={{ width: `${(currentStep / questions.length) * 100}%` }}
+                                    ></div>
+                                </div>
+                                
+                                <div className="question-card">
+                                    <div className="question-title">
+                                        {currentStep}. {questions[currentStep - 1].question}
+                                    </div>
+                                    <div>
+                                        {questions[currentStep - 1].options.map((option, index) => (
+                                            <button
+                                                key={index}
+                                                className={`option-button ${answers[questions[currentStep - 1].id] === option.value ? 'selected' : ''}`}
+                                                onClick={() => handleAnswer(questions[currentStep - 1].id, option.value)}
+                                            >
+                                                {option.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    {currentStep > 1 && (
+                                        <button 
+                                            className="button secondary" 
+                                            onClick={() => setCurrentStep(currentStep - 1)}
+                                        >
+                                            이전
+                                        </button>
+                                    )}
+                                    <button 
+                                        className="button" 
+                                        onClick={nextStep}
+                                        disabled={!answers[questions[currentStep - 1].id]}
+                                    >
+                                        {currentStep === questions.length ? '완료' : '다음'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        function InvestmentRecommendations({ investmentType }) {
+            if (!investmentType) {
+                return (
+                    <div className="card">
+                        <h3>투자 추천 정보</h3>
+                        <p>투자성향을 진단하면 맞춤형 투자 정보를 제공해드립니다.</p>
+                    </div>
+                );
+            }
+
+            const typeInfo = INVESTMENT_TYPES[investmentType];
+
+            return (
+                <div className="card">
+                    <div className="card-header">
+                        <h3 className="card-title">🎯 {typeInfo.name} 맞춤 투자 정보</h3>
+                    </div>
+                    
+                    <div className="recommendation-grid">
+                        <div className="recommendation-card">
+                            <h4>📈 추천 종목</h4>
+                            <p>{typeInfo.recommendations.stocks.join(', ')}</p>
+                        </div>
+                        
+                        <div className="recommendation-card">
+                            <h4>🏢 관심 섹터</h4>
+                            <p>{typeInfo.recommendations.sectors.join(', ')}</p>
+                        </div>
+                        
+                        <div className="recommendation-card">
+                            <h4>💡 투자 전략</h4>
+                            <p>{typeInfo.recommendations.strategies.join(', ')}</p>
+                        </div>
+                        
+                        <div className="recommendation-card">
+                            <h4>🎯 투자 특징</h4>
+                            <p>{typeInfo.characteristics.join(', ')}</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ========================= Main App =========================
+        function InvestmentProfileApp() {
+            const [users, setUsers] = useState([]);
+            const [selectedUser, setSelectedUser] = useState(null);
+            const [userData, setUserData] = useState(null);
+            const [investmentType, setInvestmentType] = useState(null);
+            const [confidence, setConfidence] = useState(0);
+            const [mbtiModalOpen, setMbtiModalOpen] = useState(false);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+
+            useEffect(() => {
+                loadUsers();
+            }, []);
+
+            useEffect(() => {
+                if (selectedUser) {
+                    loadUserData(selectedUser);
+                }
+            }, [selectedUser]);
+
+            const loadUsers = async () => {
+                try {
+                    setLoading(true);
+                    setError(null);
+                    console.log('사용자 목록 로드 시작');
+                    
+                    const service = new InvestmentProfileService();
+                    const usersData = await service.getUsers();
+                    
+                    console.log('사용자 목록 로드 성공:', usersData);
+                    setUsers(usersData);
+                } catch (error) {
+                    console.error('사용자 목록 로드 실패:', error);
+                    setError(`사용자 목록 로드 실패: ${error.message}`);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const loadUserData = async (userId) => {
+                try {
+                    setLoading(true);
+                    setError(null);
+                    console.log('사용자 데이터 로드 시작:', userId);
+                    
+                    const service = new InvestmentProfileService();
+                    const [user, behaviors, trades, watchlist] = await Promise.all([
+                        service.getUser(userId),
+                        service.getUserBehaviors(userId),
+                        service.getUserTrades(userId),
+                        service.getUserWatchlist(userId)
+                    ]);
+
+                    console.log('사용자 데이터 로드 성공:', { user, behaviors, trades, watchlist });
+                    setUserData({
+                        user,
+                        behaviors,
+                        trades,
+                        watchlist
+                    });
+
+                    // 기존 투자성향 로드 시도
+                    try {
+                        const recommendation = await service.getMBTIRecommendation(userId);
+                        setInvestmentType(recommendation.recommended_type);
+                        setConfidence(recommendation.confidence);
+                    } catch (error) {
+                        console.log('기존 투자성향 없음:', error.message);
+                    }
+                } catch (error) {
+                    console.error('사용자 데이터 로드 실패:', error);
+                    setError(`사용자 데이터 로드 실패: ${error.message}`);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handleMBTIComplete = (type, conf) => {
+                setInvestmentType(type);
+                setConfidence(conf);
+            };
+
+            return (
+                <div>
+                    <header className="header">
+                        <div className="header-content">
+                            <h1>🏦 카카오페이증권</h1>
+                            <ProfileHeader 
+                                user={userData?.user} 
+                                investmentType={investmentType}
+                                onStartMBTI={() => setMbtiModalOpen(true)}
+                            />
+                        </div>
+                    </header>
+
+                    <div className="container">
+                        {error && (
+                            <div className="error">
+                                <h4>❌ 오류 발생</h4>
+                                <p>{error}</p>
+                                <button className="button" onClick={() => setError(null)}>
+                                    오류 닫기
+                                </button>
+                            </div>
+                        )}
+
+                        <UserSelector 
+                            users={users}
+                            selectedUser={selectedUser}
+                            onUserChange={setSelectedUser}
+                            loading={loading}
+                        />
+
+                        {userData && (
+                            <>
+                                <InvestmentTypeCard 
+                                    investmentType={investmentType}
+                                    confidence={confidence}
+                                />
+
+                                <InvestmentRecommendations 
+                                    investmentType={investmentType}
+                                />
+                            </>
+                        )}
+
+                        <MBTIModal
+                            isOpen={mbtiModalOpen}
+                            onClose={() => setMbtiModalOpen(false)}
+                            onComplete={handleMBTIComplete}
+                            userData={userData}
+                        />
+                    </div>
+                </div>
+            );
+        }
+
+        // ========================= Render =========================
+        console.log('React 앱 시작');
+        try {
+            ReactDOM.render(<InvestmentProfileApp />, document.getElementById('root'));
+            console.log('React 앱 렌더링 완료');
+        } catch (error) {
+            console.error('React 앱 렌더링 실패:', error);
+            document.getElementById('root').innerHTML = `
+                <div style="padding: 2rem; text-align: center;">
+                    <h2>❌ 앱 로드 실패</h2>
+                    <p>${error.message}</p>
+                    <p>브라우저 개발자 도구의 콘솔을 확인해주세요.</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
