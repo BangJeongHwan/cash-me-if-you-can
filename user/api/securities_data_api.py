@@ -1009,9 +1009,9 @@ def get_behavior_pattern(user_id):
 
 if __name__ == '__main__':
     print("🚀 User 증권서비스 API 서버 시작 중...")
-    print("📊 포트: 5002")
-    print("🌐 API 서버: http://localhost:5002")
-    print("📚 API 문서: http://localhost:5002/api/health")
+    print("📊 포트: 5003")
+    print("🌐 API 서버: http://localhost:5003")
+    print("📚 API 문서: http://localhost:5003/api/health")
     print("📈 데이터베이스: user_securities_data.db")
     
     # 데이터 로드 (CSV 파일이 있는 경우)
@@ -1037,4 +1037,4 @@ if __name__ == '__main__':
         print("python ../data/securities_dummy_data_generator.py")
     
     # Flask 서버 실행
-    app.run(debug=True, host='0.0.0.0', port=5002)
+    app.run(debug=True, host='0.0.0.0', port=5003)

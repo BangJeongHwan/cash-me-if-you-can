@@ -18,7 +18,7 @@ load_dotenv()
 class ChatUserAnalyzer:
     """채팅용 유저 성향 분석기"""
     
-    def __init__(self, securities_api_url: str = "http://localhost:5002"):
+    def __init__(self, securities_api_url: str = "http://localhost:5003"):
         self.securities_api_url = securities_api_url
         self.openai_client = openai.OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
         self.youtube_api_key = os.getenv('YOUTUBE_API_KEY')

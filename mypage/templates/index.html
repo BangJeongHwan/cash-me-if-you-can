@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>투자교육 AI 비서</title>
+    <title>카카오페이증권 - 투자교육 AI 비서</title>
     <style>
         * {
             margin: 0;
@@ -13,126 +13,451 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #000;
-            color: #fff;
+            background: #FFE500;
+            color: #333333;
             min-height: 100vh;
+            overflow-x: hidden;
         }
         
-        .container {
-            max-width: 1200px;
+        /* 앱 컨테이너 */
+        .app-container {
+            max-width: 414px;
             margin: 0 auto;
-            padding: 20px;
+            background: #ffffff;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
         }
         
+        /* 상단 헤더 */
         .header {
+            background: #ffffff;
+            padding: 50px 20px 20px 20px;
+            text-align: center;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        /* 카카오페이증권 로고 */
+        .logo {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 20px 0;
-            border-bottom: 1px solid #334155;
+            justify-content: center;
+            gap: 8px;
             margin-bottom: 30px;
         }
         
-        .header h1 {
-            font-size: 24px;
-            font-weight: 600;
-        }
-        
-        .btn {
-            background: #1e293b;
-            color: #fff;
-            border: 1px solid #475569;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
-        
-        .btn:hover {
-            background: #334155;
-        }
-        
-        .btn-primary {
-            background: #10b981;
-            border-color: #10b981;
-        }
-        
-        .btn-primary:hover {
-            background: #059669;
-        }
-        
-        .card {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .agent-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .agent-card {
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 12px;
-            padding: 20px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .agent-card:hover {
-            border-color: #10b981;
-            transform: translateY(-2px);
-        }
-        
-        .agent-card.selected {
-            border-color: #10b981;
-            background: #064e3b;
-        }
-        
-        .agent-icon {
+        .logo-icon {
             width: 24px;
             height: 24px;
-            margin-right: 12px;
-            color: #10b981;
+            background: #FFE500;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
         }
         
-        .agent-name {
+        .logo-text {
             font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 8px;
+            font-weight: 700;
+            color: #333333;
         }
         
-        .agent-summary {
-            color: #94a3b8;
+        /* 메인 타이틀 */
+        .main-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333333;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+        
+        .sub-title {
             font-size: 14px;
+            color: #666666;
+            margin-bottom: 30px;
+        }
+        
+        /* 캐릭터 */
+        .character-container {
+            margin-bottom: 30px;
+        }
+        
+        .character {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto;
+            position: relative;
+            background: #FFE500;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(255, 229, 0, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .character:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(255, 229, 0, 0.4);
+        }
+        
+        .character-face {
+            width: 100px;
+            height: 100px;
+            background: #FFE500;
+            border-radius: 50%;
+            position: relative;
+        }
+        
+        /* 춘식이 귀 */
+        .character-ears {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+        }
+        
+        .ear {
+            width: 16px;
+            height: 20px;
+            background: #FFE500;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            position: relative;
+        }
+        
+        .ear::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 10px;
+            background: #FF6B35;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+        }
+        
+        /* 화가난 눈 - X자 모양 */
+        .character-eyes {
+            position: absolute;
+            top: 32px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+        }
+        
+        .eye {
+            width: 16px;
+            height: 16px;
+            position: relative;
+        }
+        
+        .eye::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(45deg);
+            width: 20px;
+            height: 3px;
+            background: #333333;
+            border-radius: 2px;
+        }
+        
+        .eye::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            width: 20px;
+            height: 3px;
+            background: #333333;
+            border-radius: 2px;
+        }
+        
+        /* 화가난 이마 주름 */
+        .character-wrinkles {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+        }
+        
+        .wrinkle {
+            width: 3px;
+            height: 8px;
+            background: #333333;
+            border-radius: 2px;
+            opacity: 0.7;
+        }
+        
+        /* 화가난 코 */
+        .character-nose {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 6px;
+            background: #333333;
+            border-radius: 50%;
+        }
+        
+        /* 화가난 입 - 아래로 내려간 입 */
+        .character-mouth {
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 15px;
+            border: 3px solid #333333;
+            border-top: none;
+            border-radius: 0 0 30px 30px;
+        }
+        
+        /* 화가난 증기 효과 */
+        .character-steam {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+        }
+        
+        .steam {
+            width: 12px;
+            height: 12px;
+            background: #333333;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            opacity: 0.6;
+            animation: steam-animation 1.5s ease-in-out infinite;
+        }
+        
+        .steam:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+        
+        @keyframes steam-animation {
+            0%, 100% {
+                transform: translateY(0) scale(1);
+                opacity: 0.6;
+            }
+            50% {
+                transform: translateY(-5px) scale(1.2);
+                opacity: 0.3;
+            }
+        }
+        
+        .camera-icon {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 24px;
+            height: 24px;
+            background: #333333;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .camera-icon::before {
+            content: '';
+            width: 12px;
+            height: 12px;
+            background: #ffffff;
+            border-radius: 50%;
+        }
+        
+        /* 메인 컨텐츠 */
+        .main-content {
+            padding: 20px;
+            background: #ffffff;
+            min-height: calc(100vh - 250px);
+        }
+        
+        /* 프로필 입력 섹션 */
+        .profile-section {
+            margin-bottom: 30px;
+        }
+        
+        .profile-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            background: #ffffff;
+            margin-bottom: 20px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .profile-input:focus {
+            outline: none;
+            border-color: #FFE500;
+        }
+        
+        /* 현재 Agent 표시 */
+        .current-agent {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .agent-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
             margin-bottom: 12px;
         }
         
-        .syllabus-tags {
+        .agent-icon {
+            width: 36px;
+            height: 36px;
+            background: #FFE500;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        
+        .agent-info h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333333;
+            margin-bottom: 4px;
+        }
+        
+        .agent-info p {
+            font-size: 13px;
+            color: #666666;
+        }
+        
+        .agent-tags {
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
+            margin-top: 10px;
         }
         
         .tag {
-            background: #334155;
-            color: #e2e8f0;
+            background: #f8f9fa;
+            color: #666666;
             padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 500;
+            border: 1px solid #e0e0e0;
+        }
+        
+        /* 완료 버튼 */
+        .complete-button {
+            width: 100%;
+            background: #FFE500;
+            color: #333333;
+            border: none;
             border-radius: 12px;
-            font-size: 12px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
         }
         
-        .hidden {
-            display: none;
+        .complete-button:hover {
+            background: #f5d900;
+            transform: translateY(-1px);
         }
         
+        /* 하단 버튼들 */
+        .bottom-buttons {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 414px;
+            background: #ffffff;
+            padding: 20px;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 20px 20px 0 0;
+        }
+        
+        .button-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        
+        .main-button {
+            background: #FFE500;
+            color: #333333;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .main-button:hover {
+            background: #f5d900;
+            transform: translateY(-1px);
+        }
+        
+        .secondary-button {
+            background: #ffffff;
+            color: #666666;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 16px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+        }
+        
+        .secondary-button:hover {
+            background: #f8f9fa;
+            border-color: #FFE500;
+            transform: translateY(-1px);
+        }
+        
+        .button-icon {
+            width: 24px;
+            height: 24px;
+            font-size: 18px;
+        }
+        
+        /* 모달 스타일 */
         .modal {
             position: fixed;
             top: 0;
@@ -147,14 +472,14 @@
         }
         
         .modal-content {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 12px;
+            background: #ffffff;
+            border-radius: 20px;
             padding: 30px;
-            max-width: 500px;
+            max-width: 400px;
             width: 90%;
             max-height: 80vh;
             overflow-y: auto;
+            margin: 20px;
         }
         
         .modal-header {
@@ -164,27 +489,40 @@
             margin-bottom: 20px;
         }
         
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333333;
+        }
+        
         .close-btn {
             background: none;
             border: none;
-            color: #94a3b8;
+            color: #999999;
             font-size: 24px;
             cursor: pointer;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
+        /* 채팅 패널 */
         .chat-container {
             position: fixed;
             right: 0;
             top: 0;
             width: 400px;
             height: 100vh;
-            background: #0f172a;
-            border-left: 1px solid #334155;
+            background: #ffffff;
+            border-left: 1px solid #e0e0e0;
             display: flex;
             flex-direction: column;
             transform: translateX(100%);
             transition: transform 0.3s ease;
             z-index: 1000;
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
         }
         
         .chat-container.open {
@@ -192,56 +530,78 @@
         }
         
         .chat-header {
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            color: #ffffff;
             padding: 20px;
-            border-bottom: 1px solid #334155;
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+        
+        .chat-title {
+            font-size: 18px;
+            font-weight: 600;
         }
         
         .chat-messages {
             flex: 1;
             padding: 20px;
             overflow-y: auto;
+            background: #f8f9fa;
         }
         
         .message {
             margin-bottom: 15px;
-            padding: 12px;
-            border-radius: 12px;
+            padding: 12px 16px;
+            border-radius: 16px;
             max-width: 80%;
+            font-size: 14px;
+            line-height: 1.4;
         }
         
         .message.user {
-            background: #064e3b;
+            background: #ff6b35;
+            color: #ffffff;
             margin-left: auto;
-            border: 1px solid #10b981;
+            border-bottom-right-radius: 4px;
         }
         
         .message.assistant {
-            background: #1e293b;
-            border: 1px solid #334155;
+            background: #ffffff;
+            color: #333333;
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 4px;
         }
         
         .chat-input {
             padding: 20px;
-            border-top: 1px solid #334155;
+            background: #ffffff;
+            border-top: 1px solid #e0e0e0;
         }
         
         .chat-input textarea {
             width: 100%;
-            padding: 12px;
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 6px;
-            color: #fff;
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            color: #333333;
             resize: none;
             height: 60px;
+            font-size: 14px;
         }
         
         .send-btn {
             margin-top: 10px;
             width: 100%;
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            padding: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
         }
         
         .loading {
@@ -249,7 +609,7 @@
             width: 20px;
             height: 20px;
             border: 3px solid #f3f3f3;
-            border-top: 3px solid #10b981;
+            border-top: 3px solid #ff6b35;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -260,96 +620,137 @@
         }
         
         .error {
-            color: #ef4444;
-            background: #7f1d1d;
-            padding: 10px;
-            border-radius: 6px;
+            color: #ff4444;
+            background: #fff5f5;
+            padding: 12px 16px;
+            border-radius: 12px;
             margin: 10px 0;
+            font-size: 14px;
         }
         
         .success {
             color: #10b981;
-            background: #064e3b;
-            padding: 10px;
-            border-radius: 6px;
+            background: #f0fdf4;
+            padding: 12px 16px;
+            border-radius: 12px;
             margin: 10px 0;
+            font-size: 14px;
+        }
+        
+        /* 반응형 */
+        @media (max-width: 480px) {
+            .app-container {
+                max-width: 100%;
+            }
+            
+            .bottom-buttons {
+                max-width: 100%;
+            }
+            
+            .chat-container {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="app-container">
+        <!-- 상단 헤더 -->
         <header class="header">
-            <h1>투자교육 AI 비서</h1>
-            <div>
-                <button class="btn" onclick="openMemoModal()">📝 메모함</button>
-                <button class="btn" onclick="openAgentSelector()">🔄 Agent 선택</button>
+            <div class="logo">
+                <div class="logo-icon">pay</div>
+                <div class="logo-text">증권</div>
+            </div>
+            <h1 class="main-title">원하는 프로필을 만들어주세요</h1>
+            <p class="sub-title">나만의 투자 스타일에 맞는 맞춤형 교육과 인사이트를 제공해드려요.</p>
+            
+            <div class="character-container">
+                <div class="character" onclick="openChat()">
+                    <div class="character-steam">
+                        <div class="steam"></div>
+                        <div class="steam"></div>
+                    </div>
+                    <div class="character-face">
+                        <div class="character-ears">
+                            <div class="ear"></div>
+                            <div class="ear"></div>
+                        </div>
+                        <div class="character-wrinkles">
+                            <div class="wrinkle"></div>
+                            <div class="wrinkle"></div>
+                            <div class="wrinkle"></div>
+                        </div>
+                        <div class="character-eyes">
+                            <div class="eye"></div>
+                            <div class="eye"></div>
+                        </div>
+                        <div class="character-nose"></div>
+                        <div class="character-mouth"></div>
+                    </div>
+                    <div class="camera-icon"></div>
+                </div>
             </div>
         </header>
 
-        <main>
-            <!-- 현재 선택된 Agent 표시 -->
-            <div class="card" id="currentAgent">
-                <h2>나의 현재 Agent</h2>
-                <div class="agent-card selected" id="selectedAgentCard">
-                    <div style="display: flex; align-items: center;">
-                        <span class="agent-icon">📚</span>
-                        <div>
-                            <div class="agent-name">스탠다드 버디</div>
-                            <div class="agent-summary">투자 입문자를 위한 기본 가이드</div>
-                        </div>
-                    </div>
-                    <div class="syllabus-tags">
-                        <span class="tag">주식/ETF 기초</span>
-                        <span class="tag">거래화면 튜토리얼</span>
-                        <span class="tag">리스크 기본</span>
-                    </div>
-                    <button class="btn btn-primary" style="margin-top: 15px;" onclick="openChat()">대화하기</button>
-                </div>
-            </div>
-
-            <!-- 데일리 코칭 섹션 -->
-            <div class="card">
-                <h2>데일리 코칭</h2>
-                <p style="color: #94a3b8; margin-bottom: 20px;">나의 학습과 투자를 돕는 맞춤 코칭 서비스</p>
-                
-                <div class="agent-grid">
-                    <div class="card" onclick="showReport()">
-                        <h3>📋 오늘의 3줄 리포트</h3>
-                        <p style="color: #94a3b8;">시장 인사이트와 학습을 쉽게 요약해 드려요.</p>
-                        <button class="btn" style="margin-top: 10px;">실행</button>
+        <!-- 메인 컨텐츠 -->
+        <main class="main-content">
+            <div class="profile-section">
+                <input type="text" class="profile-input" placeholder="투자왕춘식이" value="투자왕춘식이">
                     </div>
                     
-                    <div class="card" onclick="showPractice()">
-                        <h3>🎮 실습: 뉴스 기반 의사결정</h3>
-                        <p style="color: #94a3b8;">시나리오별 가상 매수/매도</p>
-                        <button class="btn" style="margin-top: 10px;">실행</button>
-                    </div>
-                    
-                    <div class="card" onclick="showRisk()">
-                        <h3>🛡️ 리스크 체크</h3>
-                        <p style="color: #94a3b8;">변동성·드로다운 체감</p>
-                        <button class="btn" style="margin-top: 10px;">실행</button>
+            <!-- 현재 Agent 표시 -->
+            <div class="current-agent" id="currentAgent">
+                <div class="agent-header">
+                    <div class="agent-icon" id="agentIcon">📚</div>
+                    <div class="agent-info">
+                        <h3 id="agentName">스탠다드 버디</h3>
+                        <p id="agentSummary">투자 입문자를 위한 기본 가이드</p>
                     </div>
                 </div>
+                <div class="agent-tags" id="agentTags">
+                    <span class="tag">주식/ETF 기초</span>
+                    <span class="tag">거래화면 튜토리얼</span>
+                    <span class="tag">리스크 기본</span>
+                </div>
             </div>
+            
+            <button class="complete-button" onclick="completeProfile()">완료</button>
         </main>
+
+        <!-- 하단 버튼들 -->
+        <div class="bottom-buttons">
+            <div class="button-grid">
+                <button class="secondary-button" onclick="showSimilarStocks()">
+                    <span class="button-icon">📈</span>
+                    동일 유형 사용자 관심/추천 종목
+                </button>
+                <button class="secondary-button" onclick="showSimilarNews()">
+                    <span class="button-icon">📰</span>
+                    동일 유형 사용자 추천 뉴스
+                </button>
+                <button class="secondary-button" onclick="showKeywords()">
+                    <span class="button-icon">🔍</span>
+                    동일 유형 사용자 주요 대화 키워드
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- 채팅 패널 -->
     <div id="chatPanel" class="chat-container">
         <div class="chat-header">
-            <h3 id="chatAgentName">스탠다드 버디</h3>
+            <h3 class="chat-title" id="chatAgentName">스탠다드 버디</h3>
             <button class="close-btn" onclick="closeChat()">&times;</button>
         </div>
         <div class="chat-messages" id="chatMessages">
             <div class="message assistant">
                 <div style="font-size: 12px; opacity: 0.6; margin-bottom: 5px;">AI</div>
-                <div>안녕하세요! 스탠다드 버디 에이전트 모드로 대화를 시작할게요. 먼저 주제를 골라볼까요?</div>
+                <div>안녕하세요! 카카오페이증권 AI 비서입니다. 어떤 도움이 필요하신가요? 😊</div>
             </div>
         </div>
         <div class="chat-input">
             <textarea id="chatInput" placeholder="메시지를 입력하세요..."></textarea>
-            <button class="btn btn-primary send-btn" onclick="sendMessage()">보내기</button>
+            <button class="send-btn" onclick="sendMessage()">보내기</button>
         </div>
     </div>
 
@@ -421,62 +822,25 @@
             }
         }
         
-        // Agent 선택
-        function selectAgent(agentId) {
-            currentAgent = agentId;
-            updateCurrentAgent();
-            closeAgentModal();
-        }
-        
         // 현재 Agent 업데이트
         function updateCurrentAgent() {
             const agent = agents[currentAgent];
             if (!agent) return;
             
-            const card = document.getElementById('selectedAgentCard');
-            
-            card.innerHTML = `
-                <div style="display: flex; align-items: center;">
-                    <span class="agent-icon">${agent.icon}</span>
-                    <div>
-                        <div class="agent-name">${agent.name}</div>
-                        <div class="agent-summary">${agent.summary}</div>
-                    </div>
-                </div>
-                <div class="syllabus-tags">
-                    ${agent.syllabus.map(tag => `<span class="tag">${tag}</span>`).join('')}
-                </div>
-                <button class="btn btn-primary" style="margin-top: 15px;" onclick="openChat()">대화하기</button>
-            `;
-            
-            // 채팅 Agent 이름도 업데이트
+            document.getElementById('agentIcon').textContent = agent.icon;
+            document.getElementById('agentName').textContent = agent.name;
+            document.getElementById('agentSummary').textContent = agent.summary;
             document.getElementById('chatAgentName').textContent = agent.name;
-        }
-        
-        // 모달 열기/닫기
-        function openAgentSelector() {
-            // Agent 선택 모달 구현
-            alert('Agent 선택 기능은 준비 중입니다.');
-        }
-        
-        function closeAgentModal() {
-            // 모달 닫기 구현
-        }
-        
-        function openMemoModal() {
-            // 메모 모달 구현
-            alert('메모 기능은 준비 중입니다.');
-        }
-        
-        function closeMemoModal() {
-            // 모달 닫기 구현
+            
+            // 태그 업데이트
+            const tagsContainer = document.getElementById('agentTags');
+            tagsContainer.innerHTML = agent.syllabus.map(tag => `<span class="tag">${tag}</span>`).join('');
         }
         
         // 채팅 열기/닫기
         function openChat() {
-            // chat_server.py의 /chat 화면으로 이동
-            const chatUrl = `http://localhost:8001/chat/test?agent_id=${currentAgent}`;
-            window.open(chatUrl, '_blank');
+            // /chat_intro 페이지로 이동
+            window.location.href = '/chat_intro';
         }
         
         function closeChat() {
@@ -542,7 +906,7 @@
                 errorMessage.className = 'message assistant';
                 errorMessage.innerHTML = `
                     <div style="font-size: 12px; opacity: 0.6; margin-bottom: 5px;">AI</div>
-                    <div>죄송합니다. 일시적인 오류가 발생했습니다.</div>
+                    <div>죄송합니다. 일시적인 오류가 발생했습니다. 다시 시도해주세요.</div>
                 `;
                 messagesContainer.appendChild(errorMessage);
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -557,35 +921,30 @@
             }
         });
         
-        // 코칭 기능들
-        async function showReport() {
-            try {
-                const response = await apiCall('/report', 'POST', {
-                    agent_id: currentAgent
-                });
-                
-                const report = response.report;
-                const reportText = report.lines.join('\n\n');
-                
-                if (confirm('3줄 리포트를 생성하고 메모로 저장하시겠습니까?')) {
-                    await apiCall('/memos', 'POST', {
-                        agent_id: currentAgent,
-                        title: `3줄 리포트 - ${agents[currentAgent].name}`,
-                        content: reportText
-                    });
-                    showSuccess('리포트가 메모로 저장되었습니다!');
-                }
-            } catch (error) {
-                console.error('리포트 생성 실패:', error);
+        // 프로필 완료 함수
+        function completeProfile() {
+            const profileName = document.querySelector('.profile-input').value;
+            if (profileName.trim()) {
+                showSuccess('프로필이 완성되었습니다! ' + profileName + '님, 환영합니다! 🎉');
+            } else {
+                showError('프로필 이름을 입력해주세요.');
             }
         }
         
-        function showPractice() {
-            alert('실습 시나리오 기능은 준비 중입니다.');
+        // 하단 버튼 기능들
+        function showSimilarStocks() {
+            alert('동일 유형 사용자들의 관심 종목과 추천 종목을 보여드릴게요! 📈');
+            // 향후 구현: API 연동하여 실제 데이터 표시
         }
         
-        function showRisk() {
-            alert('리스크 체크 기능은 준비 중입니다.');
+        function showSimilarNews() {
+            alert('동일 유형 사용자들이 관심 있어하는 뉴스를 추천해드릴게요! 📰');
+            // 향후 구현: API 연동하여 실제 뉴스 데이터 표시
+        }
+        
+        function showKeywords() {
+            alert('동일 유형 사용자들의 주요 대화 키워드를 분석해드릴게요! 🔍');
+            // 향후 구현: API 연동하여 실제 키워드 분석 결과 표시
         }
         
         // 페이지 로드 시 초기화

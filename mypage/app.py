@@ -29,6 +29,11 @@ def index():
     """메인 페이지"""
     return render_template('index.html')
 
+@app.route('/chat_intro')
+def chat_intro():
+    """투자 교육 인트로 페이지"""
+    return render_template('chat_intro.html')
+
 @app.route('/api/agents', methods=['GET'])
 def get_agents():
     """모든 Agent 정보 조회"""
@@ -324,4 +329,4 @@ if __name__ == '__main__':
     init_db()
     
     # 개발 서버 실행
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5004)

@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카카오페이증권 - 투자 교육 인트로</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #FFE500;
+            color: #333333;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* 앱 컨테이너 */
+        .app-container {
+            max-width: 414px;
+            margin: 0 auto;
+            background: #ffffff;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* 상단 헤더 */
+        .header {
+            background: #ffffff;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #f0f0f0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .logo-icon {
+            width: 24px;
+            height: 24px;
+            background: #FFE500;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .logo-text {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333333;
+        }
+        
+        /* 메인 컨텐츠 */
+        .main-content {
+            padding: 20px;
+            background: #ffffff;
+            min-height: calc(100vh - 200px);
+        }
+        
+        /* 채팅 메시지 스타일 */
+        .message-container {
+            margin-bottom: 20px;
+        }
+        
+        .message {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            background: #FFE500;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        
+        .message-content {
+            flex: 1;
+            background: #f8f9fa;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border-top-left-radius: 4px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .user-message {
+            justify-content: flex-end;
+        }
+        
+        .user-message .message-content {
+            background: #FFE500;
+            border-top-right-radius: 4px;
+            border-top-left-radius: 12px;
+        }
+        
+        .user-message .message-avatar {
+            order: 2;
+            background: #333333;
+            color: #ffffff;
+        }
+        
+        /* 질문 카드 */
+        .question-card {
+            background: #ffffff;
+            border: 2px solid #FFE500;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(255, 229, 0, 0.2);
+        }
+        
+        .question-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333333;
+            margin-bottom: 16px;
+        }
+        
+        .question-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .question-button {
+            background: #ffffff;
+            color: #333333;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+        
+        .question-button:hover {
+            border-color: #FFE500;
+            background: #fffef0;
+        }
+        
+        .question-button.selected {
+            background: #FFE500;
+            border-color: #FFE500;
+            color: #333333;
+        }
+        
+        /* 텍스트 입력 */
+        .text-input-container {
+            margin: 20px 0;
+        }
+        
+        .text-input {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 14px;
+            background: #ffffff;
+            transition: border-color 0.3s ease;
+        }
+        
+        .text-input:focus {
+            outline: none;
+            border-color: #FFE500;
+        }
+        
+        .submit-button {
+            width: 100%;
+            background: #FFE500;
+            color: #333333;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .submit-button:hover {
+            background: #f5d900;
+            transform: translateY(-1px);
+        }
+        
+        /* 투자 청사진 카드 */
+        .investment-card {
+            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+            border-radius: 16px;
+            padding: 24px;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border: 2px solid #FFE500;
+        }
+        
+        .card-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333333;
+            margin-bottom: 8px;
+        }
+        
+        .card-subtitle {
+            font-size: 14px;
+            color: #666666;
+            margin-bottom: 20px;
+        }
+        
+        .card-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #FFE500 0%, #f5d900 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card-image::before {
+            content: '🌱';
+            font-size: 60px;
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .card-image::after {
+            content: '☀️';
+            font-size: 40px;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+        }
+        
+        .card-description {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333333;
+            margin-bottom: 16px;
+        }
+        
+        .card-description strong {
+            color: #FF6B35;
+            font-weight: 600;
+        }
+        
+        .how-section {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 16px;
+        }
+        
+        .how-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333333;
+            margin-bottom: 12px;
+        }
+        
+        .how-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .how-icon {
+            width: 24px;
+            height: 24px;
+            background: #FFE500;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+        
+        .how-text {
+            flex: 1;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #333333;
+        }
+        
+        /* 미션 카드 */
+        .mission-cards {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin: 20px 0;
+        }
+        
+        .mission-card {
+            background: #ffffff;
+            border: 2px solid #e0e0e0;
+            border-radius: 16px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .mission-card:hover {
+            border-color: #FFE500;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 229, 0, 0.2);
+        }
+        
+        .mission-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333333;
+            margin-bottom: 8px;
+        }
+        
+        .mission-subtitle {
+            font-size: 13px;
+            color: #666666;
+            margin-bottom: 12px;
+        }
+        
+        .mission-description {
+            font-size: 13px;
+            line-height: 1.5;
+            color: #333333;
+            margin-bottom: 16px;
+        }
+        
+        .mission-link {
+            display: inline-block;
+            background: #FFE500;
+            color: #333333;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .mission-link:hover {
+            background: #f5d900;
+            transform: translateY(-1px);
+        }
+        
+        /* 액션 버튼 */
+        .action-button {
+            width: 100%;
+            background: #FFE500;
+            color: #333333;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .action-button:hover {
+            background: #f5d900;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 229, 0, 0.3);
+        }
+        
+        /* 로딩 애니메이션 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #FFE500;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 반응형 */
+        @media (max-width: 480px) {
+            .app-container {
+                max-width: 100%;
+            }
+            
+            .main-content {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 상단 헤더 -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">pay</div>
+                <div class="logo-text">증권</div>
+            </div>
+        </header>
+
+        <!-- 메인 컨텐츠 -->
+        <main class="main-content">
+            <div id="chatContainer">
+                <!-- 인사 및 소개 -->
+                <div class="message-container" id="introSection">
+                    <div class="message">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            만나서 반가워요. :) 저는 <span id="userName">사용자</span> 님과 자산관리에 대한 고민을 함께할 알피입니다.
+                        </div>
+                    </div>
+                    <div class="message">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <span id="userName2">사용자</span> 님이 제대로 돈을 벌 수 있도록 도와드릴게요. 진짜 PB를 만난 것처럼, 편안하게 대화를 나누며 시작해볼까요?
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 성향 파악 질문들 -->
+                <div class="message-container" id="questionSection" style="display: none;">
+                    <div class="message">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            본격적인 이야기에 앞서, <span id="userName3">사용자</span> 님이 어떤 분인지 조금 더 알고 싶어요. 어려운 질문은 아니니 편하게 답해주세요.
+                        </div>
+                    </div>
+
+                    <!-- 첫 번째 질문 -->
+                    <div class="question-card" id="question1">
+                        <div class="question-title">첫 번째 질문입니다. 투자를 '세상을 이해하는 하나의 과정'과 '수익을 내는 효율적인 기술' 중 어디에 더 가깝다고 생각하세요?</div>
+                        <div class="question-buttons">
+                            <button class="question-button" onclick="selectAnswer(1, '세상을 이해하는 과정')">세상을 이해하는 과정</button>
+                            <button class="question-button" onclick="selectAnswer(1, '수익을 내는 기술')">수익을 내는 기술</button>
+                        </div>
+                    </div>
+
+                    <!-- 두 번째 질문 -->
+                    <div class="question-card" id="question2" style="display: none;">
+                        <div class="question-title">두 번째 질문입니다. 이전에 삼성전자 투자 경험이 있으시군요. 혹시 그때 가장 아쉬웠던 점은 무엇이었나요?</div>
+                        <div class="question-buttons">
+                            <button class="question-button" onclick="selectAnswer(2, '왜 샀는지 명확한 기준이 없었다')">왜 샀는지 명확한 기준이 없었다</button>
+                            <button class="question-button" onclick="selectAnswer(2, '손실이 나니 불안해서 못 견뎠다')">손실이 나니 불안해서 못 견뎠다</button>
+                            <button class="question-button" onclick="selectAnswer(2, '언제 팔아야 할지 몰랐다')">언제 팔아야 할지 몰랐다</button>
+                        </div>
+                    </div>
+
+                    <!-- 세 번째 질문 -->
+                    <div class="question-card" id="question3" style="display: none;">
+                        <div class="question-title">마지막 질문입니다. 앞으로 5년 안에 이루고 싶은 '가장 중요한 목표' 한 가지가 있다면 무엇일까요? 내 집 마련? 자동차 구매? 창업 자금?</div>
+                        <div class="text-input-container">
+                            <input type="text" class="text-input" id="goalInput" placeholder="예: 아내와 함께 갈 안식년 여행 자금 마련">
+                            <button class="submit-button" onclick="submitGoal()">목표 제출하기</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 투자 청사진 -->
+                <div class="message-container" id="investmentSection" style="display: none;">
+                    <div class="message">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            정말 멋진 목표네요! 그 꿈을 이룰 수 있도록 제가 옆에서 돕겠습니다. 이제 <span id="userName4">사용자</span> 님만을 위한 투자 청사진을 그려볼게요.
+                        </div>
+                    </div>
+
+                    <div class="investment-card">
+                        <div class="card-title"><span id="userName5">사용자</span> 님을 위한 투자 청사진</div>
+                        <div class="card-subtitle">나만의 기준을 가진 정원사</div>
+                        <div class="card-image"></div>
+                        <div class="card-description">
+                            <strong>Why!</strong> <span id="userName6">사용자</span> 님은 투자를 통해 세상을 이해하고, 명확한 기준을 통해 감정적 흔들림을 줄이고 싶어 하십니다. 단기적인 날씨(시장 상황) 예측보다, 좋은 씨앗(기업)을 골라 꾸준히 가꾸어 결실을 보는 '정원사'의 관점이 필요합니다.
+                        </div>
+                        <div class="how-section">
+                            <div class="how-title">How?</div>
+                            <div class="how-item">
+                                <div class="how-icon">🌱</div>
+                                <div class="how-text">
+                                    <strong>씨앗 고르기:</strong> 유행을 좇지 않고, 내가 이해할 수 있고 장기적으로 성장할 기업을 고르는 기준을 세웁니다.
+                                </div>
+                            </div>
+                            <div class="how-item">
+                                <div class="how-icon">💧</div>
+                                <div class="how-text">
+                                    <strong>물 주기:</strong> 매달 정해진 날에 꾸준히 씨앗을 추가로 심어(적립식 투자), 정원을 풍성하게 만듭니다.
+                                </div>
+                            </div>
+                            <div class="how-item">
+                                <div class="how-icon">⏰</div>
+                                <div class="how-text">
+                                    <strong>기다리기:</strong> 열매가 열릴 때까지(목표 달성) 조급해하지 않고, 정원이 잘 자라고 있는지 주기적으로 돌봅니다.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="message">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            어떠신가요? 이 투자 방식은 단기 수익에 흔들리지 않고, <span id="userName7">사용자</span> 님만의 투자 원칙을 차분히 세워나가는 데 도움이 될 거예요.
+                        </div>
+                    </div>
+
+                    <button class="action-button" onclick="showPlan()">
+                        <span id="userName8">사용자</span> 님의 성공적인 투자를 위한 학습 및 실행 계획 보기
+                    </button>
+                </div>
+
+                <!-- 실행 계획 -->
+                <div class="message-container" id="planSection" style="display: none;">
+                    <div class="message">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            자 이제 본격적으로 실행해볼까요?
+                        </div>
+                    </div>
+
+                    <button class="action-button" onclick="showWeek1()">1주차 실행하기</button>
+
+                    <div id="week1Content" style="display: none;">
+                        <div class="message">
+                            <div class="message-avatar">🤖</div>
+                            <div class="message-content">
+                                좋습니다! 정원사가 되기 위한 첫 주 계획을 실행해보아요. 거창할 필요 없어요. 이번 주엔 딱 두 가지만 함께 해볼까요?
+                            </div>
+                        </div>
+
+                        <div class="mission-cards">
+                            <div class="mission-card">
+                                <div class="mission-title">학습 미션</div>
+                                <div class="mission-subtitle">좋은 씨앗 고르는 기준 배우기</div>
+                                <div class="mission-description">
+                                    좋은 기업을 고르는 가장 기본적인 지표인 '자기자본이익률(ROE)'에 대해 쉽고 재미있게 알려드릴게요.
+                                </div>
+                                <a href="#" class="mission-link">무쓸투 콘텐츠</a>
+                            </div>
+
+                            <div class="mission-card">
+                                <div class="mission-title">실행 미션</div>
+                                <div class="mission-subtitle">나의 첫 텃밭 만들기</div>
+                                <div class="mission-description">
+                                    부담 없는 금액으로 시작하며 꾸준함의 힘을 경험해보세요. 목표 이름을 설정하면 동기 부여에 도움이 될 거예요.
+                                </div>
+                                <a href="#" class="mission-link">주식모으기</a>
+                            </div>
+                        </div>
+
+                        <div class="message">
+                            <div class="message-avatar">🤖</div>
+                            <div class="message-content">
+                                두 가지 미션을 완료하면, 제가 다음 주에 새로운 계획을 가지고 다시 찾아올게요. 막히는 부분이 있다면 언제든 저를 불러주세요!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 사용자 답변 저장
+        let userAnswers = {
+            question1: null,
+            question2: null,
+            goal: null
+        };
+
+        // URL에서 사용자 이름 가져오기
+        function getUserName() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('user') || '사용자';
+        }
+
+        // 사용자 이름 업데이트
+        function updateUserName() {
+            const userName = getUserName();
+            const nameElements = document.querySelectorAll('[id^="userName"]');
+            nameElements.forEach(element => {
+                element.textContent = userName;
+            });
+        }
+
+        // 답변 선택
+        function selectAnswer(questionNum, answer) {
+            // 버튼 선택 상태 업데이트
+            const buttons = document.querySelectorAll(`#question${questionNum} .question-button`);
+            buttons.forEach(btn => {
+                btn.classList.remove('selected');
+                if (btn.textContent === answer) {
+                    btn.classList.add('selected');
+                }
+            });
+
+            // 답변 저장
+            userAnswers[`question${questionNum}`] = answer;
+
+            // 응답 메시지 표시
+            setTimeout(() => {
+                showResponse(questionNum, answer);
+            }, 500);
+        }
+
+        // 응답 메시지 표시
+        function showResponse(questionNum, answer) {
+            let responseMessage = '';
+            
+            if (questionNum === 1) {
+                if (answer === '세상을 이해하는 과정') {
+                    responseMessage = '그렇군요. 투자의 본질적인 의미에 관심이 많으시네요.';
+                } else {
+                    responseMessage = '효율적인 기술로서 투자를 접근하시는군요. 실용적인 관점이 중요하죠.';
+                }
+            } else if (questionNum === 2) {
+                if (answer === '왜 샀는지 명확한 기준이 없었다') {
+                    responseMessage = '알겠습니다. 나만의 기준을 갖는 것이 중요하다고 생각하시는군요.';
+                } else if (answer === '손실이 나니 불안해서 못 견뎠다') {
+                    responseMessage = '감정적인 흔들림이 큰 문제였군요. 심리적 안정감이 투자에 중요하죠.';
+                } else {
+                    responseMessage = '매도 타이밍의 중요성을 느끼셨군요. 명확한 매도 기준이 필요하죠.';
+                }
+            }
+
+            // 응답 메시지 추가
+            const responseDiv = document.createElement('div');
+            responseDiv.className = 'message';
+            responseDiv.innerHTML = `
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">${responseMessage}</div>
+            `;
+            
+            document.getElementById(`question${questionNum}`).appendChild(responseDiv);
+
+            // 다음 질문 표시
+            setTimeout(() => {
+                if (questionNum < 3) {
+                    document.getElementById(`question${questionNum + 1}`).style.display = 'block';
+                    document.getElementById(`question${questionNum + 1}`).scrollIntoView({ behavior: 'smooth' });
+                }
+            }, 1000);
+        }
+
+        // 목표 제출
+        function submitGoal() {
+            const goalInput = document.getElementById('goalInput');
+            const goal = goalInput.value.trim();
+            
+            if (!goal) {
+                alert('목표를 입력해주세요.');
+                return;
+            }
+
+            userAnswers.goal = goal;
+
+            // 목표 제출 메시지 표시
+            const responseDiv = document.createElement('div');
+            responseDiv.className = 'message';
+            responseDiv.innerHTML = `
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">"${goal}" 정말 멋진 목표네요! 그 꿈을 이룰 수 있도록 제가 옆에서 돕겠습니다.</div>
+            `;
+            
+            document.getElementById('question3').appendChild(responseDiv);
+
+            // 투자 청사진 표시
+            setTimeout(() => {
+                document.getElementById('investmentSection').style.display = 'block';
+                document.getElementById('investmentSection').scrollIntoView({ behavior: 'smooth' });
+            }, 1000);
+        }
+
+        // 계획 보기
+        function showPlan() {
+            document.getElementById('planSection').style.display = 'block';
+            document.getElementById('planSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 1주차 실행하기
+        function showWeek1() {
+            document.getElementById('week1Content').style.display = 'block';
+            document.getElementById('week1Content').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            updateUserName();
+            
+            // 인사 후 질문 섹션 표시
+            setTimeout(() => {
+                document.getElementById('questionSection').style.display = 'block';
+                document.getElementById('questionSection').scrollIntoView({ behavior: 'smooth' });
+            }, 2000);
+        });
+    </script>
+</body>
+</html>
